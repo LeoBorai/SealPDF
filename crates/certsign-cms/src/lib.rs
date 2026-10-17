@@ -4,5 +4,7 @@ mod epes;
 mod ess;
 mod oids;
 mod pades;
+mod verify;
 
 pub use pades::{PadesCms, PadesCmsOptions, SignedAttrs};
+pub use verify::{VerifiedSignature, VerifyError, verify_detached};

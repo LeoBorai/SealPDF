@@ -76,6 +76,15 @@ impl Pki {
 
     /// A leaf with a certificate policy (`with_policy`) or without one.
     pub fn leaf(&self, name: &str, ec: bool, with_policy: bool) -> Leaf {
+        self.leaf_with(name, if ec { Some("P-256") } else { None }, with_policy)
+    }
+
+    /// An EC leaf on the given curve (`P-256`, `P-384`, `P-521`).
+    pub fn ec_leaf(&self, name: &str, curve: &str) -> Leaf {
+        self.leaf_with(name, Some(curve), false)
+    }
+
+    fn leaf_with(&self, name: &str, curve: Option<&str>, with_policy: bool) -> Leaf {
         let d = self.path();
         let (key, csr, pem, der) = (
             format!("{name}.key"),
@@ -84,15 +93,15 @@ impl Pki {
             format!("{name}.der"),
         );
         let subj = format!("/CN={name}/O=certsign/serialNumber=IDCES-0001");
-        let algo: &[&str] = if ec {
-            &["-newkey", "ec", "-pkeyopt", "ec_paramgen_curve:P-256"]
-        } else {
-            &["-newkey", "rsa:2048"]
+        let curve_opt = curve.map(|c| format!("ec_paramgen_curve:{c}"));
+        let algo: Vec<&str> = match &curve_opt {
+            Some(c) => vec!["-newkey", "ec", "-pkeyopt", c],
+            None => vec!["-newkey", "rsa:2048"],
         };
         let mut args = vec![
             "req", "-new", "-nodes", "-keyout", &key, "-out", &csr, "-subj", &subj,
         ];
-        args.extend_from_slice(algo);
+        args.extend_from_slice(&algo);
         assert!(openssl(d, &args));
         assert!(openssl(
             d,
