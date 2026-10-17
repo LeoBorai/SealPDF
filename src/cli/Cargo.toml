@@ -1,0 +1,10 @@
+[package]
+name = "certsign-cli"
+version.workspace = true
+edition.workspace = true
+
+[[bin]]
+name = "certsign"
+path = "src/main.rs"
+
+[dependencies]

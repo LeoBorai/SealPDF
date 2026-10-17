@@ -296,3 +296,47 @@ pub(crate) fn certification_level(doc: &Document) -> Option<u8> {
 
     signature_value(doc, sig)?.docmdp
 }
+
+/// Fully qualified names of every terminal and non-terminal field in the form.
+pub(crate) fn all_field_names(doc: &Document) -> HashSet<String> {
+    fn walk(doc: &Document, id: ObjectId, parent: &str, depth: usize, out: &mut HashSet<String>) {
+        if depth > MAX_DEPTH {
+            return;
+        }
+        let Ok(dict) = doc.get_dictionary(id) else {
+            return;
+        };
+        let name = match dict.get(b"T").ok().and_then(|o| text(doc, o)) {
+            Some(t) if parent.is_empty() => t,
+            Some(t) => format!("{parent}.{t}"),
+            None => parent.to_owned(),
+        };
+        if !name.is_empty() && !out.insert(name.clone()) {
+            // Already seen: a cycle or a repeated reference.
+            return;
+        }
+        if let Some(kids) = dict
+            .get(b"Kids")
+            .ok()
+            .and_then(|o| doc.dereference(o).ok())
+            .and_then(|(_, o)| o.as_array().ok())
+        {
+            for kid in kids.iter().filter_map(|k| k.as_reference().ok()) {
+                walk(doc, kid, &name, depth + 1, out);
+            }
+        }
+    }
+    let mut out = HashSet::new();
+    if let Some((_, form)) = acroform(doc)
+        && let Some(roots) = form
+            .get(b"Fields")
+            .ok()
+            .and_then(|o| doc.dereference(o).ok())
+            .and_then(|(_, o)| o.as_array().ok())
+    {
+        for root in roots.iter().filter_map(|r| r.as_reference().ok()) {
+            walk(doc, root, "", 0, &mut out);
+        }
+    }
+    out
+}

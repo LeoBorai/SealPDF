@@ -48,6 +48,11 @@ impl<'a> IncrementalWriter<'a> {
         })
     }
 
+    /// The document this update is appended to.
+    pub fn pdf(&self) -> &'a PdfDocument {
+        self.pdf
+    }
+
     pub fn new_object_id(&mut self) -> ObjectId {
         let id = (self.next_id, 0);
         self.next_id += 1;

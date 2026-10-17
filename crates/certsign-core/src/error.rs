@@ -116,6 +116,8 @@ pub enum Error {
     Validity(ValidityError),
     #[error("signature needs {needed} bytes but only {reserved} are reserved in /Contents")]
     SignatureTooLarge { needed: usize, reserved: usize },
+    #[error("signature field: {0}")]
+    SignatureField(String),
     #[error("invalid options: {0}")]
     Options(String),
     #[error("{0}")]
@@ -132,6 +134,7 @@ impl Error {
             Self::UnsupportedAlgorithm(_)
             | Self::Validity(_)
             | Self::Options(_)
+            | Self::SignatureField(_)
             | Self::SignatureTooLarge { .. } => None,
         }
     }
