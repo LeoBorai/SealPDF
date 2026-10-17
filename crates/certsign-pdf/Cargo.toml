@@ -4,3 +4,5 @@ version.workspace = true
 edition.workspace = true
 
 [dependencies]
+certsign-core.workspace = true
+lopdf = "0.45"

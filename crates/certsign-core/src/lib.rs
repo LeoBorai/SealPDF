@@ -3,7 +3,12 @@
 mod alg;
 mod clock;
 mod error;
+mod options;
 
 pub use alg::{DigestAlg, KeyType, SigAlg};
 pub use clock::{Clock, FixedClock, SystemClock};
 pub use error::{Error, ErrorCode, Result, ValidityError};
+pub use options::{
+    CertLevel, CertificateOptions, Certify, Checks, CommitmentType, Format, Metadata, Page, Policy,
+    Rect, ShadowPages, SignOptions, Subfilter, TimestampMode, TimestampOptions, Visible,
+};

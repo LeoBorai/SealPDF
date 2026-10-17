@@ -114,6 +114,8 @@ pub enum Error {
     UnsupportedAlgorithm(String),
     #[error("validity error: {}", .0.id())]
     Validity(ValidityError),
+    #[error("invalid options: {0}")]
+    Options(String),
     #[error("{0}")]
     Other(String),
 }
@@ -125,7 +127,7 @@ impl Error {
             Self::Pdf(code) => Some(*code),
             Self::InvalidPdf(_) => Some(ErrorCode::PDF_DOCUMENT_NEEDED),
             Self::Other(_) => Some(ErrorCode::UNKNOWN_PADES_SIGNING_ERROR),
-            Self::UnsupportedAlgorithm(_) | Self::Validity(_) => None,
+            Self::UnsupportedAlgorithm(_) | Self::Validity(_) | Self::Options(_) => None,
         }
     }
 }
