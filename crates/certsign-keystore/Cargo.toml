@@ -1,0 +1,6 @@
+[package]
+name = "certsign-keystore"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]

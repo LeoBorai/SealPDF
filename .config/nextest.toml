@@ -1,0 +1,14 @@
+[profile.default]
+fail-fast = true
+
+[profile.ci]
+fail-fast = false
+retries = 0
+failure-output = "immediate-final"
+
+# Cross-tool conformance runs need a JDK and the AutoFirma reference jars.
+# They are gated by CERTSIGN_CONFORMANCE=1; their test names start with `conformance::`.
+[profile.conformance]
+fail-fast = false
+default-filter = "test(/^conformance::/)"
+slow-timeout = { period = "60s", terminate-after = 5 }

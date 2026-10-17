@@ -3,5 +3,37 @@
 version = 4
 
 [[package]]
-name = "certsign"
+name = "certsign-cli"
+version = "0.1.0"
+
+[[package]]
+name = "certsign-cms"
+version = "0.1.0"
+
+[[package]]
+name = "certsign-core"
+version = "0.1.0"
+
+[[package]]
+name = "certsign-keystore"
+version = "0.1.0"
+
+[[package]]
+name = "certsign-pades"
+version = "0.1.0"
+
+[[package]]
+name = "certsign-pdf"
+version = "0.1.0"
+
+[[package]]
+name = "certsign-render"
+version = "0.1.0"
+
+[[package]]
+name = "certsign-tsp"
+version = "0.1.0"
+
+[[package]]
+name = "certsign-validate"
 version = "0.1.0"

@@ -1,0 +1,6 @@
+[package]
+name = "certsign-pdf"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]

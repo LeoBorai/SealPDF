@@ -1,0 +1,6 @@
+[package]
+name = "certsign-validate"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
