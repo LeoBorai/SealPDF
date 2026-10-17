@@ -1,6 +1,6 @@
 mod common;
 
-use certsign_core::Error;
+use certsign_core::{Error, Page as PageSel};
 use certsign_pdf::{
     AppearanceSpec, FieldTarget, FontFamily, FontSpec, IncrementalWriter, PdfDocument,
     add_appearance, attach_signature, layout_text, set_widget_appearance, wrap,
@@ -187,7 +187,7 @@ fn sign_with(
     let field = attach_signature(
         &mut w,
         &FieldTarget::New {
-            page: 1,
+            page: PageSel::Number(1),
             rect: Some([50.0, 50.0, 50.0 + spec.width, 50.0 + spec.height]),
         },
         sig,

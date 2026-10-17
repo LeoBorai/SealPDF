@@ -1,6 +1,6 @@
 mod common;
 
-use certsign_core::{Error, ErrorCode};
+use certsign_core::{Error, ErrorCode, Page as PageSel};
 use certsign_pdf::{FieldTarget, IncrementalWriter, PdfDocument, attach_signature};
 use common::*;
 use lopdf::{Document, Object, ObjectId, dictionary};
@@ -23,7 +23,10 @@ fn sign(
 }
 
 fn new_on(page: u32, rect: Option<[f32; 4]>) -> FieldTarget<'static> {
-    FieldTarget::New { page, rect }
+    FieldTarget::New {
+        page: PageSel::Number(page),
+        rect,
+    }
 }
 
 fn plain(pages: usize, modern: bool) -> Vec<u8> {

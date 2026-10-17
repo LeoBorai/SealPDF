@@ -1,12 +1,19 @@
-use crate::{IncrementalWriter, fields};
-use certsign_core::{Error, ErrorCode, Result};
+use crate::{IncrementalWriter, Page, fields};
+use certsign_core::{Error, ErrorCode, Page as PageChoice, Result};
 use lopdf::{Dictionary, Object, ObjectId, StringFormat};
 
 /// Where the signature goes.
 #[derive(Debug, Clone, PartialEq)]
 pub enum FieldTarget<'a> {
-    /// A new field named `SignatureN` on a 1-based page. No rectangle makes it invisible.
-    New { page: u32, rect: Option<[f32; 4]> },
+    /// A new field named `SignatureN`. No rectangle makes it invisible.
+    ///
+    /// A rectangle with no area, or one completely outside the page, is an
+    /// `INVALID_SIGNATURE_POSITION` error. One that only overhangs the page is clipped to it.
+    /// `Page::Append` adds a blank page, sized like page one, at the end of the document.
+    New {
+        page: PageChoice,
+        rect: Option<[f32; 4]>,
+    },
     /// An existing, unsigned signature field.
     Existing { name: &'a str },
 }
@@ -73,15 +80,32 @@ fn fill(w: &mut IncrementalWriter<'_>, name: &str, sig: ObjectId) -> Result<Atta
 
 fn create(
     w: &mut IncrementalWriter<'_>,
-    page_number: u32,
+    page: PageChoice,
     rect: Option<[f32; 4]>,
     sig: ObjectId,
 ) -> Result<AttachedField> {
-    let page_id = w
-        .pdf()
-        .page(page_number)
-        .ok_or(Error::Pdf(ErrorCode::INVALID_SIGNATURE_PAGE))?
-        .id;
+    let invalid_page = || Error::Pdf(ErrorCode::INVALID_SIGNATURE_PAGE);
+    let count = w.pdf().pages().len() as u32;
+    // Decide the page and check the rectangle before changing anything.
+    let (page_number, existing) = match page {
+        PageChoice::Number(n) if (1..=count).contains(&n) => (n, true),
+        PageChoice::Number(_) => return Err(invalid_page()),
+        PageChoice::Last if count > 0 => (count, true),
+        PageChoice::Last => return Err(invalid_page()),
+        PageChoice::Append => (count + 1, false),
+    };
+    let first = w.pdf().page(1).ok_or_else(invalid_page)?;
+    let page_box = if existing {
+        sized_box(w.pdf().page(page_number).ok_or_else(invalid_page)?)
+    } else {
+        sized_box(first)
+    };
+    let rect = rect.map(|r| place_rect(r, page_box)).transpose()?;
+    let page_id = if existing {
+        w.pdf().page(page_number).ok_or_else(invalid_page)?.id
+    } else {
+        append_page(w, first)?
+    };
     let taken = fields::all_field_names(w.pdf().document());
     let name = (1..)
         .map(|n| format!("Signature{n}"))
@@ -282,4 +306,74 @@ fn ensure_sig_flags(w: &mut IncrementalWriter<'_>) -> Result<()> {
             Ok(())
         }
     }
+}
+
+/// The page rectangle as AutoFirma checks it: the crop box, with width and height swapped
+/// for pages rotated by 90 or 270 degrees.
+fn sized_box(page: &Page) -> [f32; 4] {
+    let [llx, lly, urx, ury] = page.crop_box;
+    if page.rotation.is_multiple_of(180) {
+        [llx, lly, urx, ury]
+    } else {
+        [lly, llx, ury, urx]
+    }
+}
+
+/// Checks `rect` against the page and clips what overhangs the top and right edges.
+fn place_rect(rect: [f32; 4], page: [f32; 4]) -> Result<[f32; 4]> {
+    let invalid = || Error::Pdf(ErrorCode::INVALID_SIGNATURE_POSITION);
+    let [llx, lly, urx, ury] = [
+        rect[0].min(rect[2]),
+        rect[1].min(rect[3]),
+        rect[0].max(rect[2]),
+        rect[1].max(rect[3]),
+    ];
+    if rect.iter().any(|n| !n.is_finite()) || urx <= llx || ury <= lly {
+        return Err(invalid());
+    }
+    let [pl, pb, pr, pt] = page;
+    if llx >= pr || lly >= pt || urx <= pl || ury <= pb {
+        return Err(invalid());
+    }
+    Ok([llx, lly, urx.min(pr), ury.min(pt)])
+}
+
+/// Adds a blank page, as large as page one, at the end of the page tree.
+fn append_page(w: &mut IncrementalWriter<'_>, first: &Page) -> Result<ObjectId> {
+    let root = w
+        .get(catalog_id(w)?)
+        .and_then(|o| o.as_dict().ok())
+        .and_then(|c| c.get(b"Pages").ok())
+        .and_then(|o| o.as_reference().ok())
+        .ok_or_else(|| bad("catalog has no /Pages reference"))?;
+    let [llx, lly, urx, ury] = sized_box(first);
+    let (width, height) = (urx - llx, ury - lly);
+
+    let mut page = Dictionary::new();
+    page.set("Type", Object::Name(b"Page".to_vec()));
+    page.set("Parent", root);
+    page.set(
+        "MediaBox",
+        vec![
+            Object::Integer(0),
+            Object::Integer(0),
+            Object::Real(width),
+            Object::Real(height),
+        ],
+    );
+    page.set("Resources", Object::Dictionary(Dictionary::new()));
+    let page_id = w.add_object(Object::Dictionary(page));
+
+    push_to_array(w, root, b"Kids", page_id)?;
+    let node = w
+        .modify(root)?
+        .as_dict_mut()
+        .map_err(|_| bad("page tree root is not a dictionary"))?;
+    let count = node
+        .get(b"Count")
+        .ok()
+        .and_then(|o| o.as_i64().ok())
+        .unwrap_or(0);
+    node.set("Count", count + 1);
+    Ok(page_id)
 }

@@ -457,7 +457,7 @@ pub fn add_appearance(
         }
     };
     let (bw, bh) = (spec.width, spec.height);
-    let (cw, ch) = if rotation % 180 == 0 {
+    let (cw, ch) = if rotation.is_multiple_of(180) {
         (bw, bh)
     } else {
         (bh, bw)
