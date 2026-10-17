@@ -114,6 +114,8 @@ pub enum Error {
     UnsupportedAlgorithm(String),
     #[error("validity error: {}", .0.id())]
     Validity(ValidityError),
+    #[error("signature needs {needed} bytes but only {reserved} are reserved in /Contents")]
+    SignatureTooLarge { needed: usize, reserved: usize },
     #[error("invalid options: {0}")]
     Options(String),
     #[error("{0}")]
@@ -127,7 +129,10 @@ impl Error {
             Self::Pdf(code) => Some(*code),
             Self::InvalidPdf(_) => Some(ErrorCode::PDF_DOCUMENT_NEEDED),
             Self::Other(_) => Some(ErrorCode::UNKNOWN_PADES_SIGNING_ERROR),
-            Self::UnsupportedAlgorithm(_) | Self::Validity(_) | Self::Options(_) => None,
+            Self::UnsupportedAlgorithm(_)
+            | Self::Validity(_)
+            | Self::Options(_)
+            | Self::SignatureTooLarge { .. } => None,
         }
     }
 }
