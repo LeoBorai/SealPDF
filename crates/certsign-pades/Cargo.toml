@@ -4,3 +4,17 @@ version.workspace = true
 edition.workspace = true
 
 [dependencies]
+certsign-cms.workspace = true
+certsign-core.workspace = true
+certsign-keystore.workspace = true
+certsign-pdf.workspace = true
+chrono.workspace = true
+der.workspace = true
+lopdf.workspace = true
+x509-cert.workspace = true
+
+[dev-dependencies]
+cms.workspace = true
+certsign-cms.workspace = true
+sha2.workspace = true
+tempfile.workspace = true

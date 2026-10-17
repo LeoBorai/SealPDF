@@ -19,6 +19,8 @@ edition = "2024"
 
 [workspace.dependencies]
 anyhow = "1.0"
+assert_cmd = "2"
+predicates = "3"
 base64 = "0.22"
 cms = "=0.3.0-rc.0"
 const-oid = "0.10"
@@ -36,6 +38,8 @@ lopdf = "0.45"
 rsa = { version = "0.9", default-features = false, features = ["std"] }
 rand_core = { version = "0.6", features = ["getrandom"] }
 secrecy = "0.10"
+security-framework = { version = "3", features = ["macos-12"] }
+rpassword = "7"
 serde = "1.0"
 sha1 = "0.11"
 sha2 = "0.11"

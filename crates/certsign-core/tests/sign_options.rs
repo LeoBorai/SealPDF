@@ -91,7 +91,7 @@ fn parses_full_config() {
 fn defaults_apply_when_unset() {
     let o = SignOptions::from_toml("").unwrap();
     assert_eq!(o, SignOptions::default());
-    assert_eq!(o.algorithm_or_default().to_string(), "SHA512withRSA");
+    assert_eq!(o.algorithm_or_default().to_string(), "SHA256withRSA");
     assert_eq!(o.subfilter_or_default(), Subfilter::Adbe);
     assert_eq!(o.reserved_size_or_default(), 27_000);
     assert!(o.include_chain_or_default());

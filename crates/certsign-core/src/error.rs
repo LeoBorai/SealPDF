@@ -117,6 +117,9 @@ pub enum KeystoreError {
     /// The password or PIN could not be obtained: no terminal and no environment variable, say.
     #[error("no {kind} available: {reason}")]
     SecretUnavailable { kind: &'static str, reason: String },
+    /// The user or the system refused access to a private key, for example by declining a prompt.
+    #[error("access to the key was denied: {0}")]
+    AccessDenied(String),
     #[error("no key store entry with alias {0:?}")]
     UnknownAlias(String),
     #[error("{0}")]
@@ -145,6 +148,9 @@ pub enum Error {
     Validity(ValidityError),
     #[error("signature needs {needed} bytes but only {reserved} are reserved in /Contents")]
     SignatureTooLarge { needed: usize, reserved: usize },
+    /// The document was turned away before signing, for a reason that is not an AutoFirma code.
+    #[error("{0}")]
+    Refused(String),
     #[error("timestamp: {0}")]
     Timestamp(String),
     #[error("signature field: {0}")]
@@ -167,6 +173,7 @@ impl Error {
             | Self::Options(_)
             | Self::SignatureField(_)
             | Self::Timestamp(_)
+            | Self::Refused(_)
             | Self::Keystore(_)
             | Self::SignatureTooLarge { .. } => None,
         }

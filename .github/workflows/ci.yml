@@ -31,6 +31,19 @@ jobs:
 
       - uses: taiki-e/install-action@nextest
 
+      # pyHanko is the reference validator and the third-party signer in the interoperability
+      # tests. Where it is installed those tests are required to run, not skipped.
+      - uses: actions/setup-python@v5
+        if: runner.os != 'Windows'
+        with:
+          python-version: "3.12"
+
+      - name: Install pyHanko
+        if: runner.os != 'Windows'
+        run: |
+          python -m pip install pyhanko
+          echo "CERTSIGN_REQUIRE_PYHANKO=1" >> "$GITHUB_ENV"
+
       # The tests that sign with real PKCS#11 and OpenSSL fixtures need SoftHSM2 and OpenSSL 3.
       # Where SoftHSM2 is installed they are required to run, not skipped.
       - name: Install SoftHSM2 and OpenSSL (Linux)

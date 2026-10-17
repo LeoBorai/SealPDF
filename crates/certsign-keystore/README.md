@@ -1,6 +1,6 @@
 # certsign-keystore
 
-Access to signing keys and certificate chains through a `KeyStore` trait, without ever handing the private key to the caller. Backends: PKCS#12 files and PKCS#11 tokens.
+Access to signing keys and certificate chains through a `KeyStore` trait, without ever handing the private key to the caller. Backends: the macOS Keychain, PKCS#12 files and PKCS#11 tokens.
 
 ## Traits
 
@@ -26,3 +26,24 @@ Each entry that has a private key is listed with its chain from the end-entity c
 - **Listing needs no PIN.** Certificates are public objects. A certificate counts as a signing identity when the token shows a private key with the same `CKA_ID`; many tokens hide private keys until login, and then every certificate that is not a CA is offered. The chain is followed through the other certificates on the token.
 - **Signing logs in lazily.** The user PIN is requested from the `AuthPrompt` only when something is signed, and the session logs out afterwards. RSA signs with `CKM_RSA_PKCS` over a `DigestInfo` (SHA-256, SHA-384 or SHA-512); ECDSA signs with `CKM_ECDSA` and the token's raw `r || s` is converted to DER.
 - **PIN errors.** A wrong PIN is `KeystoreError::BadPin`. PKCS#11 has no retry counter, only the token's `FINAL_TRY` flag, so one try left is reported when the flag is set and nothing otherwise. A locked PIN is an error that says so.
+
+## Certificate filters
+
+`CertFilters` narrows the entries a key store lists to the ones worth offering for signing. It carries the four preferences users know from AutoFirma, with the same defaults and meaning:
+
+| Field | Preference | Default | Effect |
+| --- | --- | --- | --- |
+| `show_expired` | `showExpiredCerts` | off | Off hides certificates outside their validity period, whether expired or not yet valid. |
+| `only_signature` | `useOnlySignatureCertificates` | off | On keeps only certificates whose key usage includes `nonRepudiation`. A certificate without a key usage extension does not qualify. |
+| `only_alias` | `useOnlyAliasCertificates` | off | On keeps only pseudonym certificates, those whose subject has the `pseudonym` attribute. |
+| `skip_dnie_auth` | `skipAuthCertDnie` | on | On drops a DNIe authentication certificate: one issued by "AC DNIE ..." (OU `DNIE`, O `DIRECCION GENERAL DE LA POLICIA`, C `ES`) with the `digitalSignature` key usage. |
+
+The filters combine with AND. `CertFilters::apply` takes a `Clock`, so validity is judged at a time the caller controls. Filters decide what is offered; they do not stop a caller from signing with an alias it names explicitly.
+
+## macOS Keychain
+
+`KeychainKeyStore::open()` lists the signing identities (a certificate together with its private key) in the user's keychain search list; `open_in(path)` restricts it to one keychain file. Signing goes through the Keychain (`SecKeyCreateSignature`), so the private key never leaves it: RSA signs PKCS#1 v1.5 with SHA-256, SHA-384 or SHA-512, and ECDSA signs X9.62 with the same digests, returned as DER.
+
+macOS itself decides whether a key may be used and shows its own prompt (the login password or Touch ID). This backend asks the `AuthPrompt` for nothing and sees no secret; if the user declines, the error is `KeystoreError::AccessDenied`. The alias of an entry is the certificate's subject summary, made unique with a `#n` suffix when two share it. The chain is built from the other certificates in the same keychains, and from the system's own chain building when none is found.
+
+The implementation is compiled on macOS only. On other systems `KeychainKeyStore` exists, and `open()` fails with an error saying the Keychain is available only on macOS. The tests that use a real keychain build a throwaway keychain file and run only on macOS; they have to be run on a Mac (or the macOS CI job) because they cannot run anywhere else.

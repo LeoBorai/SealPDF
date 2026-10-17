@@ -295,10 +295,11 @@ impl SignOptions {
             allow_shadow_attack, shadow_pages);
     }
 
-    /// Algorithm to use: the configured one, else `SHA512withRSA`.
+    /// Algorithm to use: the configured one, else `SHA256withRSA`. Signing code picks a default from
+    /// the key instead when this is unset (see `certsign-pades`).
     pub fn algorithm_or_default(&self) -> SigAlg {
         self.algorithm
-            .unwrap_or(SigAlg::new(crate::DigestAlg::Sha512, crate::KeyType::Rsa))
+            .unwrap_or(SigAlg::new(crate::DigestAlg::Sha256, crate::KeyType::Rsa))
     }
 
     pub fn subfilter_or_default(&self) -> Subfilter {
