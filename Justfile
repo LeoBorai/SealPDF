@@ -9,3 +9,7 @@ dkc:
         -v $(pwd):/app \
         -w /app \
         ghcr.io/leoborai/dkc:latest
+
+# Unit and integration tests
+test:
+    cargo nextest run --workspace --no-tests=pass
