@@ -3,4 +3,25 @@ name = "certsign-tsp"
 version.workspace = true
 edition.workspace = true
 
+[features]
+default = ["http"]
+# The `HttpTransport`. Without it the crate has no network dependency.
+http = ["dep:ureq", "dep:getrandom"]
+
 [dependencies]
+certsign-core.workspace = true
+chrono.workspace = true
+cms.workspace = true
+const-oid.workspace = true
+der.workspace = true
+getrandom = { workspace = true, optional = true }
+sha1.workspace = true
+sha2.workspace = true
+spki.workspace = true
+thiserror.workspace = true
+ureq = { workspace = true, optional = true }
+x509-cert.workspace = true
+
+[dev-dependencies]
+base64.workspace = true
+tempfile.workspace = true

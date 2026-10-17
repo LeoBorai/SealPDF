@@ -190,6 +190,8 @@ pub struct TimestampOptions {
     pub require_cert: Option<bool>,
     pub username: Option<String>,
     pub extension_oid: Option<String>,
+    /// Base64 value of the request extension. Needed together with `extension_oid`.
+    pub extension_value: Option<String>,
     pub extension_critical: Option<bool>,
 }
 
@@ -287,7 +289,7 @@ impl SignOptions {
         overlay_opts!(self.certify, over.certify; level);
         overlay_opts!(self.timestamp, over.timestamp;
             mode, url, policy, hash_algorithm, require_cert, username,
-            extension_oid, extension_critical);
+            extension_oid, extension_value, extension_critical);
         overlay_opts!(self.checks, over.checks;
             allow_certified, allow_unregistered_signatures, allow_modified_form,
             allow_shadow_attack, shadow_pages);
