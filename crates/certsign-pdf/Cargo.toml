@@ -5,7 +5,10 @@ edition.workspace = true
 
 [dependencies]
 certsign-core.workspace = true
+chrono.workspace = true
+flate2.workspace = true
 lopdf.workspace = true
+png.workspace = true
 sha2.workspace = true
 
 [dev-dependencies]

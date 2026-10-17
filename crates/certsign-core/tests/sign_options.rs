@@ -161,3 +161,12 @@ fn round_trips_through_toml() {
     let text = toml::to_string(&o).unwrap();
     assert_eq!(SignOptions::from_toml(&text).unwrap(), o);
 }
+
+#[test]
+fn visible_rotation_is_an_option() {
+    let o = SignOptions::from_toml("[visible]\nrotation = 90").unwrap();
+    assert_eq!(o.visible.rotation, Some(90));
+    let mut base = SignOptions::from_toml("[visible]\nrotation = 90").unwrap();
+    base.overlay(&SignOptions::from_toml("[visible]\nrotation = 180").unwrap());
+    assert_eq!(base.visible.rotation, Some(180));
+}

@@ -81,6 +81,8 @@ pub struct Visible {
     pub font_style: Option<u32>,
     pub font_color: Option<String>,
     pub image: Option<String>,
+    /// Counter-clockwise rotation of the signature content: 0, 90, 180 or 270.
+    pub rotation: Option<u32>,
 }
 
 /// Target page of a visible signature.
@@ -279,7 +281,7 @@ impl SignOptions {
             self.policy.claimed_roles = over.policy.claimed_roles.clone();
         }
         overlay_opts!(self.visible, over.visible;
-            page, rect, field, text, font_family, font_size, font_style, font_color, image);
+            page, rect, field, text, font_family, font_size, font_style, font_color, image, rotation);
         overlay_opts!(self.certify, over.certify; level);
         overlay_opts!(self.timestamp, over.timestamp;
             mode, url, policy, hash_algorithm, require_cert, username,
