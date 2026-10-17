@@ -4,3 +4,6 @@ version.workspace = true
 edition.workspace = true
 
 [dependencies]
+certsign-core.workspace = true
+secrecy.workspace = true
+zeroize.workspace = true

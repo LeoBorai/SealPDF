@@ -104,8 +104,37 @@ impl ValidityError {
     }
 }
 
+/// Failures of key stores and of the secrets they need.
+#[derive(Debug, Clone, PartialEq, Eq, thiserror::Error)]
+pub enum KeystoreError {
+    #[error("wrong password")]
+    BadPassword,
+    #[error("wrong PIN{}", retries_suffix(.retries_left))]
+    BadPin {
+        /// Attempts left before the token locks, when it says.
+        retries_left: Option<u32>,
+    },
+    /// The password or PIN could not be obtained: no terminal and no environment variable, say.
+    #[error("no {kind} available: {reason}")]
+    SecretUnavailable { kind: &'static str, reason: String },
+    #[error("no key store entry with alias {0:?}")]
+    UnknownAlias(String),
+    #[error("{0}")]
+    Backend(String),
+}
+
+fn retries_suffix(retries: &Option<u32>) -> String {
+    match retries {
+        Some(1) => " (1 try left)".to_owned(),
+        Some(n) => format!(" ({n} tries left)"),
+        None => String::new(),
+    }
+}
+
 #[derive(Debug, thiserror::Error)]
 pub enum Error {
+    #[error("key store: {0}")]
+    Keystore(#[from] KeystoreError),
     #[error("{0}")]
     Pdf(ErrorCode),
     #[error("invalid PDF: {0}")]
@@ -138,6 +167,7 @@ impl Error {
             | Self::Options(_)
             | Self::SignatureField(_)
             | Self::Timestamp(_)
+            | Self::Keystore(_)
             | Self::SignatureTooLarge { .. } => None,
         }
     }
