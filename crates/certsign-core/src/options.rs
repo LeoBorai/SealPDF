@@ -48,6 +48,8 @@ pub enum Subfilter {
 #[serde(default, deny_unknown_fields)]
 pub struct CertificateOptions {
     pub include_chain: Option<bool>,
+    /// Copy the signer certificate's policies into `SigningCertificateV2` (default true).
+    pub include_policies: Option<bool>,
 }
 
 #[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
@@ -272,7 +274,7 @@ impl SignOptions {
         overlay_opts!(self, over; algorithm);
         overlay_opts!(self.metadata, over.metadata; reason, location, contact);
         overlay_opts!(self.format, over.format; subfilter, reserved_size);
-        overlay_opts!(self.certificate, over.certificate; include_chain);
+        overlay_opts!(self.certificate, over.certificate; include_chain, include_policies);
         overlay_opts!(self.policy, over.policy; identifier, hash, hash_algorithm, qualifier);
         if !over.policy.commitment_types.is_empty() {
             self.policy.commitment_types = over.policy.commitment_types.clone();
@@ -308,5 +310,9 @@ impl SignOptions {
 
     pub fn include_chain_or_default(&self) -> bool {
         self.certificate.include_chain.unwrap_or(true)
+    }
+
+    pub fn include_policies_or_default(&self) -> bool {
+        self.certificate.include_policies.unwrap_or(true)
     }
 }
