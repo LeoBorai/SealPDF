@@ -2,6 +2,10 @@ default:
     @echo "No default task specified."
     just --list
 
+# Dependency check: advisories, licenses, banned crates, sources (needs cargo-deny)
+deny:
+    cargo deny check
+
 # Runs the Development Kit Container
 dkc:
     docker pull ghcr.io/leoborai/dkc:latest
@@ -9,6 +13,11 @@ dkc:
         -v $(pwd):/app \
         -w /app \
         ghcr.io/leoborai/dkc:latest
+
+
+fmt:
+    cargo clippy --fix --workspace --allow-dirty --allow-staged
+    cargo fmt
 
 # Unit and integration tests
 test:

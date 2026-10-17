@@ -2,6 +2,7 @@
 name = "certsign-tsp"
 version.workspace = true
 edition.workspace = true
+publish.workspace = true
 
 [features]
 default = ["http"]
@@ -9,7 +10,6 @@ default = ["http"]
 http = ["dep:ureq", "dep:getrandom"]
 
 [dependencies]
-certsign-core.workspace = true
 chrono.workspace = true
 cms.workspace = true
 const-oid.workspace = true
@@ -21,6 +21,8 @@ spki.workspace = true
 thiserror.workspace = true
 ureq = { workspace = true, optional = true }
 x509-cert.workspace = true
+
+certsign-core.workspace = true
 
 [dev-dependencies]
 base64.workspace = true

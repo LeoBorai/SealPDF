@@ -77,6 +77,7 @@ Visible signatures and text, timestamps, signature policies, certification level
 
 ```
 cargo nextest run --workspace
+cargo deny check        # dependency advisories, licenses and sources (config in deny.toml)
 ```
 
 The tests build their certificates with the `openssl` command line tool and skip when it is missing. The PKCS#11 tests need SoftHSM2, and the interoperability tests need pyHanko (`pip install pyhanko`); both are required in CI. The macOS Keychain tests run only on macOS.

@@ -2,15 +2,13 @@
 name = "certsign-cli"
 version.workspace = true
 edition.workspace = true
+publish.workspace = true
 
 [[bin]]
 name = "certsign"
 path = "src/main.rs"
 
 [dependencies]
-certsign-core.workspace = true
-certsign-keystore.workspace = true
-certsign-pades.workspace = true
 chrono.workspace = true
 clap = { workspace = true, features = ["derive"] }
 der.workspace = true
@@ -19,6 +17,10 @@ tempfile.workspace = true
 tracing.workspace = true
 tracing-subscriber.workspace = true
 x509-cert.workspace = true
+
+certsign-core.workspace = true
+certsign-keystore.workspace = true
+certsign-pades.workspace = true
 
 [dev-dependencies]
 assert_cmd.workspace = true

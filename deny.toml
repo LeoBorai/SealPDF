@@ -1,0 +1,55 @@
+# cargo-deny: checks the dependency tree for known vulnerabilities, unwanted licenses,
+# banned or duplicated crates, and crates from unexpected sources. Run with `cargo deny check`.
+
+[graph]
+# Check what is built on the platforms certsign supports, not only on the machine running the check.
+targets = [
+    "x86_64-unknown-linux-gnu",
+    "aarch64-unknown-linux-gnu",
+    "x86_64-apple-darwin",
+    "aarch64-apple-darwin",
+    "x86_64-pc-windows-msvc",
+]
+
+[advisories]
+# Vulnerabilities, unmaintained crates and yanked releases are all errors.
+yanked = "deny"
+unmaintained = "workspace"
+ignore = [
+    # `rsa` leaks key information through timing, observable by an attacker who can time many
+    # operations over a network. certsign signs on the user's own machine, from a local file or
+    # a key store, and a network cannot observe it, so the advisory's own guidance ("local use on
+    # a non-compromised computer is fine") applies. There is no patched release. Revisit when
+    # `rsa` has one, or if signing ever runs as a network service.
+    { id = "RUSTSEC-2023-0071", reason = "local signing only: no attacker can time it over a network" },
+]
+
+[licenses]
+# The workspace crates are not published and carry no license of their own.
+private = { ignore = true }
+confidence-threshold = 0.9
+allow = [
+    "MIT",
+    "Apache-2.0",
+    "Apache-2.0 WITH LLVM-exception",
+    "BSD-2-Clause",
+    "BSD-3-Clause",
+    "ISC",
+    "Unicode-3.0",
+    "Zlib",
+    # Mozilla's CA list data in webpki-roots, used by the TSA client for HTTPS.
+    "CDLA-Permissive-2.0",
+]
+
+[bans]
+# Two versions of one crate are allowed (the RustCrypto transition makes some unavoidable),
+# but show them so that they do not grow unnoticed.
+multiple-versions = "warn"
+wildcards = "deny"
+allow-wildcard-paths = true
+
+[sources]
+unknown-registry = "deny"
+unknown-git = "deny"
+allow-registry = ["https://github.com/rust-lang/crates.io-index"]
+allow-git = []

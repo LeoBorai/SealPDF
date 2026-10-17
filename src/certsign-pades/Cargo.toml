@@ -2,16 +2,18 @@
 name = "certsign-pades"
 version.workspace = true
 edition.workspace = true
+publish.workspace = true
 
 [dependencies]
-certsign-cms.workspace = true
-certsign-core.workspace = true
-certsign-keystore.workspace = true
-certsign-pdf.workspace = true
 chrono.workspace = true
 der.workspace = true
 lopdf.workspace = true
 x509-cert.workspace = true
+
+certsign-cms.workspace = true
+certsign-core.workspace = true
+certsign-keystore.workspace = true
+certsign-pdf.workspace = true
 
 [dev-dependencies]
 cms.workspace = true

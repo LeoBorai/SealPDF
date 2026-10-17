@@ -2,6 +2,7 @@
 name = "certsign-core"
 version.workspace = true
 edition.workspace = true
+publish.workspace = true
 
 [dependencies]
 chrono.workspace = true

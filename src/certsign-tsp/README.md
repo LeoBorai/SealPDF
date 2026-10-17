@@ -4,14 +4,14 @@ RFC 3161 time-stamp client. It builds a time-stamp request for a digest, sends i
 
 ## Layout
 
-| Piece | Role |
-| --- | --- |
-| `TsaRequest` | What to stamp: hash algorithm, digest, optional policy OID, nonce, `certReq` flag and one optional extension. |
-| `TsaClient<T: Transport>` | Encodes the request, sends it through `T`, and validates the answer. |
-| `Transport` | The seam between the protocol and the network: send DER request bytes, get DER response bytes. |
-| `HttpTransport` | The production transport: HTTP or HTTPS, with optional Basic credentials. Behind the `http` feature. |
-| `RecordedTransport` / `RecordedTsa` | A test transport that replays stored answers and keeps the requests it was sent. |
-| `Tsa` | The trait signing code depends on (`&dyn Tsa`), implemented by every `TsaClient`. |
+| Piece                               | Role                                                                                                          |
+| ----------------------------------- | ------------------------------------------------------------------------------------------------------------- |
+| `TsaRequest`                        | What to stamp: hash algorithm, digest, optional policy OID, nonce, `certReq` flag and one optional extension. |
+| `TsaClient<T: Transport>`           | Encodes the request, sends it through `T`, and validates the answer.                                          |
+| `Transport`                         | The seam between the protocol and the network: send DER request bytes, get DER response bytes.                |
+| `HttpTransport`                     | The production transport: HTTP or HTTPS, with optional Basic credentials. Behind the `http` feature.          |
+| `RecordedTransport` / `RecordedTsa` | A test transport that replays stored answers and keeps the requests it was sent.                              |
+| `Tsa`                               | The trait signing code depends on (`&dyn Tsa`), implemented by every `TsaClient`.                             |
 
 ## What is checked
 

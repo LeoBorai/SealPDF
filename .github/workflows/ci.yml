@@ -4,6 +4,9 @@ on:
   push:
     branches: [main]
   pull_request:
+  # New advisories appear without any change here, so the dependency check also runs weekly.
+  schedule:
+    - cron: "0 6 * * 1"
 
 concurrency:
   group: "${{ github.workflow }} @ ${{ github.head_ref || github.ref }}"
@@ -13,7 +16,19 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
+  deny:
+    name: cargo-deny
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # Advisories, licenses, banned crates and sources, as set in deny.toml.
+      - uses: EmbarkStudios/cargo-deny-action@v2
+        with:
+          command: check
+
   test:
+    if: github.event_name != 'schedule'
     name: ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:
