@@ -5,5 +5,18 @@ edition.workspace = true
 
 [dependencies]
 certsign-core.workspace = true
+der.workspace = true
+p12-keystore.workspace = true
+p256 = { workspace = true, features = ["pkcs8"] }
+p384 = { workspace = true, features = ["pkcs8"] }
+rand_core.workspace = true
+rsa.workspace = true
 secrecy.workspace = true
+sha2.workspace = true
+spki.workspace = true
 zeroize.workspace = true
+
+[dev-dependencies]
+certsign-cms.workspace = true
+p12-keystore.workspace = true
+tempfile.workspace = true

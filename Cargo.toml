@@ -22,16 +22,18 @@ anyhow = "1.0"
 base64 = "0.22"
 cms = "=0.3.0-rc.0"
 const-oid = "0.10"
-der = { version = "0.8", features = ["alloc", "oid"] }
+der = { version = "0.8", features = ["alloc", "derive", "oid"] }
 flate2 = "1"
 getrandom = "0.4"
 p256 = { version = "0.14", default-features = false, features = ["ecdsa", "std"] }
 p384 = { version = "0.14", default-features = false, features = ["ecdsa", "std"] }
+p12-keystore = "0.2"
 png = "0.18"
 chrono = { version = "0.4", default-features = false, features = ["clock"] }
 clap = "4.6"
 lopdf = "0.45"
 rsa = { version = "0.9", default-features = false, features = ["std"] }
+rand_core = { version = "0.6", features = ["getrandom"] }
 secrecy = "0.10"
 serde = "1.0"
 sha1 = "0.11"

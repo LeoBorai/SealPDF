@@ -10,3 +10,9 @@ Access to signing keys and certificate chains through a `KeyStore` trait, withou
 ## Secrets
 
 Secrets cross the API as `SecretString`: wiped from memory when dropped and absent from `Debug` output. Backends that need a secret in another encoding (PKCS#12 derives its keys from a null-terminated UTF-16 big-endian password) hold it in `SecretBytes`, which is wiped on drop or on demand. Key store failures, wrong passwords and PINs included, are `KeystoreError` values, so a caller can tell a bad PIN (with the retries left, when the token says) from a missing secret.
+
+## PKCS#12
+
+`Pkcs12KeyStore` opens `.p12` / `.pfx` files. It asks the `AuthPrompt` for the file's password once, when opening; after that listing and signing need nothing more. Opening checks the file's MAC, so a wrong password fails the whole open with `KeystoreError::BadPassword` and no entries are listed. Both the current encryption (PBES2 with AES) and the older 3DES and RC2 schemes are read.
+
+Each entry that has a private key is listed with its chain from the end-entity certificate to the root. Signing works with RSA keys (PKCS#1 v1.5, SHA-256, SHA-384 or SHA-512) and EC keys on P-256 and P-384 (ECDSA, any of those digests). Asking for a mismatched algorithm, an unsupported curve or an unknown alias is an error, never a silent fallback.
