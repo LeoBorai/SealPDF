@@ -2,7 +2,7 @@ use crate::{
     ess::{EssCertIdV2, IssuerSerial, SigningCertificateV2},
     oids,
 };
-use certsign_core::{DigestAlg, Error, KeyType, Result, SigAlg};
+use certsign_core::{DigestAlg, Error, KeyType, Policy, Result, SigAlg};
 use cms::{
     cert::{CertificateChoices, IssuerAndSerialNumber},
     content_info::{CmsVersion, ContentInfo},
@@ -44,7 +44,7 @@ impl Default for PadesCmsOptions {
     }
 }
 
-fn cms_err(what: &str, e: impl std::fmt::Display) -> Error {
+pub(crate) fn cms_err(what: &str, e: impl std::fmt::Display) -> Error {
     Error::Other(format!("CMS: {what}: {e}"))
 }
 
@@ -167,6 +167,17 @@ impl PadesCms {
     /// Signed attributes for a signature over data whose digest is `data_digest`.
     pub fn signed_attributes(&self, data_digest: &[u8]) -> Result<SignedAttrs> {
         self.signed_attributes_with(data_digest, Vec::new())
+    }
+
+    /// Signed attributes with the EPES attributes configured in `policy`: signature policy,
+    /// commitment types and claimed roles. An empty policy gives the same as [`Self::signed_attributes`].
+    pub fn signed_attributes_epes(
+        &self,
+        data_digest: &[u8],
+        policy: &Policy,
+    ) -> Result<SignedAttrs> {
+        let extra = crate::epes::attributes(policy, self.alg.digest)?;
+        self.signed_attributes_with(data_digest, extra)
     }
 
     /// As [`Self::signed_attributes`], with extra attributes (signature policy and so on).

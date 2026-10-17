@@ -4,7 +4,7 @@
 mod common;
 
 use certsign_cms::{PadesCms, PadesCmsOptions};
-use certsign_core::{DigestAlg, KeyType, Page, SigAlg};
+use certsign_core::{CommitmentType, DigestAlg, KeyType, Page, Policy, SigAlg};
 use certsign_pdf::{FieldTarget, IncrementalWriter, PdfDocument, attach_signature};
 use common::Pki;
 use lopdf::{Document, Object, StringFormat, dictionary};
@@ -36,6 +36,7 @@ fn sign_pdf(
     chain: &[Vec<u8>],
     alg: SigAlg,
     digest: &str,
+    policy: &Policy,
     input: &[u8],
 ) -> Vec<u8> {
     let pdf = PdfDocument::open(input.to_vec(), None).unwrap();
@@ -62,7 +63,7 @@ fn sign_pdf(
 
     let cms = PadesCms::new(alg, chain, PadesCmsOptions::default()).unwrap();
     let data_digest = cms.digest(&prepared.signed_parts().concat());
-    let attrs = cms.signed_attributes(&data_digest).unwrap();
+    let attrs = cms.signed_attributes_epes(&data_digest, policy).unwrap();
     let signature = pki.sign(leaf, digest, &attrs.to_sign().unwrap());
     let der = cms.assemble(&attrs, &signature).unwrap();
     prepared.embed(&der).unwrap()
@@ -112,6 +113,7 @@ fn signed_pdf_verifies_with_openssl_over_the_byte_range() {
             &chain,
             SigAlg::new(digest, key),
             openssl_name,
+            &Policy::default(),
             &blank_pdf(),
         );
 
@@ -145,5 +147,58 @@ fn signed_pdf_verifies_with_openssl_over_the_byte_range() {
             )
             .unwrap();
         }
+    }
+}
+
+#[test]
+fn epes_signed_pdf_verifies_with_openssl() {
+    let Some(pki) = Pki::new() else { return };
+    let leaf = pki.leaf("rsa-signer", false, true);
+    let policy = Policy {
+        identifier: Some("2.16.724.1.3.1.1.2.1.9".into()),
+        hash: Some("G7roucf600+f03r/o0bAOQ6WAs0=".into()),
+        hash_algorithm: Some("SHA-1".into()),
+        qualifier: Some("https://sede.060.gob.es/politica_de_firma_anexo_1.pdf".into()),
+        commitment_types: vec![CommitmentType {
+            identifier: "proof-of-approval".into(),
+            qualifiers: vec![],
+        }],
+        claimed_roles: vec!["Director".into()],
+    };
+    let out = sign_pdf(
+        &pki,
+        &leaf,
+        std::slice::from_ref(&leaf.cert_der),
+        SigAlg::new(DigestAlg::Sha256, KeyType::Rsa),
+        "sha256",
+        &policy,
+        &blank_pdf(),
+    );
+    let parsed = PdfDocument::open(out.clone(), None).unwrap();
+    let range = parsed.signatures()[0]
+        .value
+        .as_ref()
+        .unwrap()
+        .byte_range
+        .clone()
+        .unwrap();
+    let (a, b) = (range[1] as usize, range[2] as usize);
+    let covered = [&out[..a], &out[b..]].concat();
+    let hex = std::str::from_utf8(&out[a + 1..b - 1]).unwrap();
+    let raw: Vec<u8> = (0..hex.len() / 2)
+        .map(|i| u8::from_str_radix(&hex[2 * i..2 * i + 2], 16).unwrap())
+        .collect();
+    let len = if raw[1] < 0x80 {
+        2 + raw[1] as usize
+    } else {
+        let n = (raw[1] & 0x7F) as usize;
+        2 + n
+            + raw[2..2 + n]
+                .iter()
+                .fold(0usize, |acc, x| (acc << 8) | *x as usize)
+    };
+    assert!(pki.verify(&raw[..len], &covered));
+    if let Ok(dir) = std::env::var("CERTSIGN_KEEP_DIR") {
+        std::fs::write(std::path::Path::new(&dir).join("pades-epes.pdf"), &out).unwrap();
     }
 }
