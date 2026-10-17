@@ -22,7 +22,7 @@ edition = "2024"
 anyhow = "1.0"
 assert_cmd = "2"
 predicates = "3"
-base64 = "0.22"
+base64 = "0.23"
 cms = "=0.3.0-rc.0"
 const-oid = "0.10"
 der = { version = "0.8", features = ["alloc", "derive", "oid"] }

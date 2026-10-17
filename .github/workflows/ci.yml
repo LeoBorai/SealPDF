@@ -22,10 +22,13 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # Advisories, licenses, banned crates and sources, as set in deny.toml.
-      - uses: EmbarkStudios/cargo-deny-action@v2
-        with:
-          command: check
+      - uses: taiki-e/install-action@cargo-deny
+
+      # Advisories, licenses, duplicate crate versions and sources, as set in deny.toml.
+      # `-D warnings` turns every warning into an error: a new duplicate version, an unused
+      # exception in deny.toml or a license that is no longer needed all fail the job.
+      - name: cargo deny
+        run: cargo deny check -D warnings
 
   test:
     if: github.event_name != 'schedule'

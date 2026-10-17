@@ -42,11 +42,22 @@ allow = [
 ]
 
 [bans]
-# Two versions of one crate are allowed (the RustCrypto transition makes some unavoidable),
-# but show them so that they do not grow unnoticed.
-multiple-versions = "warn"
+# A second version of a crate is an error. The ones below are known and unavoidable for now:
+# each says what holds it back, so that a new duplicate fails the check instead of slipping in.
+multiple-versions = "deny"
 wildcards = "deny"
 allow-wildcard-paths = true
+
+# Whole subtrees that sit on an older generation of a library family.
+skip-tree = [
+    { crate = "p12-keystore@0.2.1", reason = "pinned to the 0.2 series, which uses the previous RustCrypto generation (der 0.7, cms 0.2, sha2 0.10, aes 0.8, nom 7). Later versions need pre-release crates that cannot be built together with the cms release candidate. Drop this when cms 0.3 is final." },
+    { crate = "rsa@0.9.10", reason = "the stable RSA crate is on the previous RustCrypto generation (rand 0.8, rand_core 0.6, signature 2, pkcs8 0.10); 0.10 is still a release candidate." },
+]
+
+# Single crates held back by something outside our control.
+skip = [
+    { crate = "miniz_oxide@0.8.9", reason = "png still uses 0.8 while flate2 has moved to 0.9." },
+]
 
 [sources]
 unknown-registry = "deny"

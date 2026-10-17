@@ -2,9 +2,9 @@ default:
     @echo "No default task specified."
     just --list
 
-# Dependency check: advisories, licenses, banned crates, sources (needs cargo-deny)
+# Dependency check, as CI runs it: warnings are errors (needs cargo-deny)
 deny:
-    cargo deny check
+    cargo deny check -D warnings
 
 # Runs the Development Kit Container
 dkc:
