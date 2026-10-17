@@ -60,8 +60,9 @@ impl TestTsa {
     pub fn new() -> Option<Self> {
         let dir = tempfile::tempdir().unwrap();
         let d = dir.path();
-        if !openssl(d, &["version"]) {
-            eprintln!("openssl not found: skipping");
+        // LibreSSL, which some systems ship as `openssl`, has no `ts` command.
+        if !openssl(d, &["version"]) || !openssl(d, &["ts", "-help"]) {
+            eprintln!("openssl with the `ts` command not found: skipping");
             return None;
         }
         std::fs::write(

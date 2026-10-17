@@ -5,6 +5,8 @@ use std::{
     process::Command,
 };
 
+pub mod softhsm;
+
 pub fn openssl(dir: &Path, args: &[&str]) -> bool {
     Command::new("openssl")
         .args(args)
@@ -230,10 +232,17 @@ impl Pki {
 
     /// Checks `signature` over `data` with the public key of `leaf`, using OpenSSL.
     pub fn verify(&self, leaf: &Leaf, digest: &str, data: &[u8], signature: &[u8]) -> bool {
+        // Unique file names: tests of one process may verify at the same time.
+        static NEXT: std::sync::atomic::AtomicUsize = std::sync::atomic::AtomicUsize::new(0);
+        let n = NEXT.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
         let d = self.path();
-        std::fs::write(d.join("vdata.bin"), data).unwrap();
-        std::fs::write(d.join("vsig.bin"), signature).unwrap();
-        let pubkey = format!("{}.pub", leaf.name);
+        let (data_file, sig_file, pubkey) = (
+            format!("vdata{n}.bin"),
+            format!("vsig{n}.bin"),
+            format!("{}.{n}.pub", leaf.name),
+        );
+        std::fs::write(d.join(&data_file), data).unwrap();
+        std::fs::write(d.join(&sig_file), signature).unwrap();
         assert!(openssl(
             d,
             &[
@@ -254,8 +263,8 @@ impl Pki {
                 "-verify",
                 &pubkey,
                 "-signature",
-                "vsig.bin",
-                "vdata.bin",
+                &sig_file,
+                &data_file,
             ],
         )
     }
