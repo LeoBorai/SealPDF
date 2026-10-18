@@ -144,7 +144,7 @@ impl Pki {
             format!("{name}.csr"),
             format!("{name}.pem"),
         );
-        let subj = format!("/CN={name}/O=certsign");
+        let subj = format!("/CN={name}/O=sealpdf");
         let curve_opt = curve.map(|c| format!("ec_paramgen_curve:{c}"));
         let algo: Vec<&str> = match &curve_opt {
             Some(c) => vec!["-newkey", "ec", "-pkeyopt", c],
@@ -289,7 +289,7 @@ pub fn blank_pdf(pages: usize, modern: bool) -> Vec<u8> {
     );
     let catalog = doc.add_object(dictionary! { "Type" => "Catalog", "Pages" => tree });
     doc.trailer.set("Root", catalog);
-    let id = Object::String(b"certsign-test-id!".to_vec(), StringFormat::Hexadecimal);
+    let id = Object::String(b"sealpdf-test-id!".to_vec(), StringFormat::Hexadecimal);
     doc.trailer.set("ID", vec![id.clone(), id]);
     doc.reference_table.cross_reference_type = if modern {
         lopdf::xref::XrefType::CrossReferenceStream
@@ -341,18 +341,18 @@ pub struct PyhankoSignature {
 }
 
 fn python() -> String {
-    std::env::var("CERTSIGN_PYTHON").unwrap_or_else(|_| "python3".into())
+    std::env::var("SEALPDF_PYTHON").unwrap_or_else(|_| "python3".into())
 }
 
-/// Whether pyHanko is importable. Missing pyHanko skips tests, unless `CERTSIGN_REQUIRE_PYHANKO=1`.
+/// Whether pyHanko is importable. Missing pyHanko skips tests, unless `SEALPDF_REQUIRE_PYHANKO=1`.
 pub fn pyhanko_available() -> bool {
     let ok = Command::new(python())
         .args(["-c", "import pyhanko"])
         .output()
         .map(|o| o.status.success())
         .unwrap_or(false);
-    if !ok && std::env::var("CERTSIGN_REQUIRE_PYHANKO").as_deref() == Ok("1") {
-        panic!("CERTSIGN_REQUIRE_PYHANKO=1 but pyHanko is not importable");
+    if !ok && std::env::var("SEALPDF_REQUIRE_PYHANKO").as_deref() == Ok("1") {
+        panic!("SEALPDF_REQUIRE_PYHANKO=1 but pyHanko is not importable");
     }
     if !ok {
         eprintln!("pyHanko not available: skipping");

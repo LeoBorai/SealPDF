@@ -1,6 +1,6 @@
-# certsign CLI
+# SealPDF CLI
 
-`certsign` signs PDF files with a digital certificate you already have. The signature is invisible and follows PAdES (`adbe.pkcs7.detached`). The crate is `src/cli`; the binary is `certsign`.
+`sealpdf` (SealPDF) signs PDF files with a digital certificate you already have. The signature is invisible and follows PAdES (`adbe.pkcs7.detached`). The crate is `src/cli`; the binary is `sealpdf`.
 
 | Command | What it does | Page |
 | --- | --- | --- |
@@ -21,7 +21,7 @@ flowchart TD
     open --> kc["KeychainKeyStore<br/>macOS"]
     open --> p12["Pkcs12KeyStore<br/>file + password"]
     p12 --> prompt["TerminalPrompt<br/>env var or hidden tty input"]
-    sg --> pades["certsign_pades::sign_pdf"]
+    sg --> pades["sealpdf_pades::sign_pdf"]
     pades --> ks["KeyStore::sign<br/>the private key never leaves the store"]
     main --> exit["exit.rs<br/>error to exit code"]
 ```
@@ -61,7 +61,7 @@ flowchart TD
 
 - The password is never accepted as an argument; only the *name* of a variable is.
 - Nothing is cached: every request asks again.
-- The Keychain asks through macOS itself; `certsign` never sees that secret.
+- The Keychain asks through macOS itself; `sealpdf` never sees that secret.
 
 ## Exit codes
 
@@ -73,7 +73,7 @@ flowchart TD
 | 4 | `KEYSTORE` | Key store, password or key access problem, including an unknown alias. |
 | 6 | `OTHER` | Anything else (I/O, signature too large, unsupported algorithm). |
 
-Errors print as `certsign: <message>` on stderr.
+Errors print as `sealpdf: <message>` on stderr.
 
 ## Safety guarantees
 

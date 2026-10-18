@@ -1,9 +1,9 @@
-# `certsign sign`
+# `sealpdf sign`
 
 Signs a PDF with an invisible PAdES signature and writes the result to a new file.
 
 ```
-certsign sign <INPUT> [--keystore TYPE[:LOCATION]] [--password-env VAR]
+sealpdf sign <INPUT> [--keystore TYPE[:LOCATION]] [--password-env VAR]
                       [--alias NAME] [-o, --output FILE] [--force]
 ```
 
@@ -46,14 +46,14 @@ flowchart TD
 
 ## How the certificate is found and used
 
-`certsign` does not request or enroll certificates from a certificate authority: no CSR is made and nothing is issued. The certificate must already exist, in the macOS Keychain or in a PKCS#12 (`.p12`) file. This diagram shows how `sign` gets from `--keystore` to a signature.
+`sealpdf` does not request or enroll certificates from a certificate authority: no CSR is made and nothing is issued. The certificate must already exist, in the macOS Keychain or in a PKCS#12 (`.p12`) file. This diagram shows how `sign` gets from `--keystore` to a signature.
 
 ```mermaid
 flowchart TD
     S(["--keystore"]) --> T{"Value"}
     T -- "absent, macOS" --> KC
     T -- "absent, other systems" --> E1["exit 2: --keystore is required"]
-    T -- "keychain" --> KC["Open the Keychain search list<br/>no password asked by certsign"]
+    T -- "keychain" --> KC["Open the Keychain search list<br/>no password asked by sealpdf"]
     T -- "pkcs12:file" --> PW{"--password-env VAR given?"}
     T -- "anything else" --> E2["exit 2: unknown keystore type"]
 
@@ -83,7 +83,7 @@ flowchart TD
     PARSE --> HASH["Hash the PDF bytes covered by /ByteRange<br/>build the CMS signed attributes"]
     HASH --> USE{"Store type"}
     USE -- "PKCS#12" --> SIGN1["Sign with the key decrypted at open"]
-    USE -- "Keychain" --> SIGN2["macOS signs inside the Keychain<br/>shows its own allow prompt: password or Touch ID<br/>certsign never sees the key"]
+    USE -- "Keychain" --> SIGN2["macOS signs inside the Keychain<br/>shows its own allow prompt: password or Touch ID<br/>sealpdf never sees the key"]
     SIGN1 --> EMB
     SIGN2 --> EMB["Embed the CMS, with the chain, in /Contents"]
 ```

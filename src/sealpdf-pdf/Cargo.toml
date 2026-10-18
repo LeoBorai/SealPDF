@@ -1,0 +1,18 @@
+[package]
+name = "sealpdf-pdf"
+version.workspace = true
+edition.workspace = true
+publish.workspace = true
+
+[dependencies]
+chrono.workspace = true
+flate2.workspace = true
+lopdf.workspace = true
+png.workspace = true
+sha2.workspace = true
+
+sealpdf-core.workspace = true
+
+[dev-dependencies]
+sha2.workspace = true
+tempfile.workspace = true

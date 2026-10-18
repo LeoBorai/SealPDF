@@ -1,5 +1,5 @@
-use certsign_core::{KeystoreError, Result};
-use certsign_keystore::{AuthPrompt, AuthRequest, SecretString};
+use sealpdf_core::{KeystoreError, Result};
+use sealpdf_keystore::{AuthPrompt, AuthRequest, SecretString};
 use std::io::{IsTerminal, Write};
 
 /// Gets a password from an environment variable or from the terminal, without echo.

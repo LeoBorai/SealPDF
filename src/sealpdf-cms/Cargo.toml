@@ -1,0 +1,23 @@
+[package]
+name = "sealpdf-cms"
+version.workspace = true
+edition.workspace = true
+publish.workspace = true
+
+[dependencies]
+base64.workspace = true
+sealpdf-core.workspace = true
+cms.workspace = true
+const-oid.workspace = true
+der.workspace = true
+p256.workspace = true
+p384.workspace = true
+rsa.workspace = true
+sha2.workspace = true
+spki.workspace = true
+x509-cert.workspace = true
+
+[dev-dependencies]
+sealpdf-pdf.workspace = true
+lopdf.workspace = true
+tempfile.workspace = true

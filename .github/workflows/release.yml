@@ -59,7 +59,7 @@ jobs:
           key: ${{ matrix.target }}
 
       - name: Build
-        run: cargo build --release --locked -p certsign-cli --target ${{ matrix.target }}
+        run: cargo build --release --locked -p sealpdf-cli --target ${{ matrix.target }}
 
       - name: Package
         shell: bash
@@ -67,9 +67,9 @@ jobs:
           TARGET: ${{ matrix.target }}
           EXT: ${{ matrix.ext }}
         run: |
-          name="certsign-${GITHUB_REF_NAME}-${TARGET}"
-          bin="certsign"
-          [[ "$EXT" == "zip" ]] && bin="certsign.exe"
+          name="sealpdf-${GITHUB_REF_NAME}-${TARGET}"
+          bin="sealpdf"
+          [[ "$EXT" == "zip" ]] && bin="sealpdf.exe"
           mkdir -p "dist/$name"
           cp "target/${TARGET}/release/${bin}" "dist/$name/"
           cp README.md "dist/$name/"
@@ -88,7 +88,7 @@ jobs:
 
       - uses: actions/upload-artifact@v4
         with:
-          name: certsign-${{ matrix.target }}
+          name: sealpdf-${{ matrix.target }}
           path: dist/*
           if-no-files-found: error
 
@@ -100,7 +100,7 @@ jobs:
       - uses: actions/download-artifact@v4
         with:
           path: dist
-          pattern: certsign-*
+          pattern: sealpdf-*
           merge-multiple: true
 
       - name: List assets

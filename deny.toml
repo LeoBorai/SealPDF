@@ -2,7 +2,7 @@
 # banned or duplicated crates, and crates from unexpected sources. Run with `cargo deny check`.
 
 [graph]
-# Check what is built on the platforms certsign supports, not only on the machine running the check.
+# Check what is built on the platforms sealpdf supports, not only on the machine running the check.
 targets = [
     "x86_64-unknown-linux-gnu",
     "aarch64-unknown-linux-gnu",
@@ -17,7 +17,7 @@ yanked = "deny"
 unmaintained = "workspace"
 ignore = [
     # `rsa` leaks key information through timing, observable by an attacker who can time many
-    # operations over a network. certsign signs on the user's own machine, from a local file or
+    # operations over a network. sealpdf signs on the user's own machine, from a local file or
     # a key store, and a network cannot observe it, so the advisory's own guidance ("local use on
     # a non-compromised computer is fine") applies. There is no patched release. Revisit when
     # `rsa` has one, or if signing ever runs as a network service.

@@ -6,8 +6,8 @@ use crate::{
     exit::Failure,
     prompt::TerminalPrompt,
 };
-use certsign_core::SystemClock;
-use certsign_keystore::{CertFilters, Entry, KeyStore, KeychainKeyStore, Pkcs12KeyStore};
+use sealpdf_core::SystemClock;
+use sealpdf_keystore::{CertFilters, Entry, KeyStore, KeychainKeyStore, Pkcs12KeyStore};
 
 pub fn run(command: Command) -> Result<(), Failure> {
     match command {

@@ -1,0 +1,30 @@
+[package]
+name = "sealpdf-keystore"
+version.workspace = true
+edition.workspace = true
+publish.workspace = true
+
+[dependencies]
+chrono.workspace = true
+cryptoki.workspace = true
+der.workspace = true
+p12-keystore.workspace = true
+p256 = { workspace = true, features = ["pkcs8"] }
+p384 = { workspace = true, features = ["pkcs8"] }
+rand_core.workspace = true
+rsa.workspace = true
+secrecy.workspace = true
+sha2.workspace = true
+spki.workspace = true
+x509-cert.workspace = true
+zeroize.workspace = true
+
+sealpdf-core.workspace = true
+
+[dev-dependencies]
+sealpdf-cms.workspace = true
+p12-keystore.workspace = true
+tempfile.workspace = true
+
+[target.'cfg(target_os = "macos")'.dependencies]
+security-framework.workspace = true

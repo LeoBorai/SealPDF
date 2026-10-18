@@ -1,6 +1,6 @@
-use certsign_core::{Error, ErrorCode};
+use sealpdf_core::{Error, ErrorCode};
 
-/// The exit codes of `certsign`.
+/// The exit codes of `sealpdf`.
 pub const OK: i32 = 0;
 /// A problem with how the command was called. Also what `clap` exits with.
 pub const USAGE: i32 = 2;
@@ -70,7 +70,7 @@ fn is_refusal(code: &ErrorCode) -> bool {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use certsign_core::KeystoreError;
+    use sealpdf_core::KeystoreError;
 
     #[test]
     fn maps_errors_to_codes() {

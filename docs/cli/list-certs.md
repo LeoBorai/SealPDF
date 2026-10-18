@@ -1,9 +1,9 @@
-# `certsign list-certs`
+# `sealpdf list-certs`
 
 Shows the signing certificates a key store offers, so you can pick an alias for `sign --alias`.
 
 ```
-certsign list-certs [--keystore TYPE[:LOCATION]] [--password-env VAR]
+sealpdf list-certs [--keystore TYPE[:LOCATION]] [--password-env VAR]
 ```
 
 | Option | Meaning |
@@ -34,7 +34,7 @@ sequenceDiagram
     participant CLI as list_certs::run
     participant KS as KeyStore
     participant F as CertFilters
-    User->>CLI: certsign list-certs
+    User->>CLI: sealpdf list-certs
     CLI->>CLI: parse --keystore
     CLI->>KS: open (PKCS#12: ask password)
     CLI->>KS: entries()

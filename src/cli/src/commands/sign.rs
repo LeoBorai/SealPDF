@@ -1,8 +1,8 @@
 use super::{offered, open_keystore};
 use crate::{args::SignArgs, exit::Failure};
-use certsign_core::{KeystoreError, SystemClock};
-use certsign_keystore::Entry;
-use certsign_pades::{SigningParams, sign_pdf};
+use sealpdf_core::{KeystoreError, SystemClock};
+use sealpdf_keystore::Entry;
+use sealpdf_pades::{SigningParams, sign_pdf};
 use std::{
     io::{BufRead, IsTerminal, Write},
     path::{Path, PathBuf},
@@ -82,7 +82,7 @@ fn same_file(a: &Path, b: &Path) -> bool {
 
 /// Picks the signing certificate: `--alias`, the only one, or a numbered choice on a terminal.
 fn choose_alias(
-    store: &dyn certsign_keystore::KeyStore,
+    store: &dyn sealpdf_keystore::KeyStore,
     alias: Option<&str>,
 ) -> Result<String, Failure> {
     if let Some(alias) = alias {
@@ -90,13 +90,13 @@ fn choose_alias(
         return if store.entries()?.iter().any(|e| e.alias == alias) {
             Ok(alias.to_owned())
         } else {
-            Err(certsign_core::Error::from(KeystoreError::UnknownAlias(alias.to_owned())).into())
+            Err(sealpdf_core::Error::from(KeystoreError::UnknownAlias(alias.to_owned())).into())
         };
     }
     let entries = offered(store)?;
     match entries.as_slice() {
-        [] => Err(certsign_core::Error::from(KeystoreError::Backend(
-            "no signing certificate found; `certsign list-certs` shows what is available".into(),
+        [] => Err(sealpdf_core::Error::from(KeystoreError::Backend(
+            "no signing certificate found; `sealpdf list-certs` shows what is available".into(),
         ))
         .into()),
         [only] => Ok(only.alias.clone()),

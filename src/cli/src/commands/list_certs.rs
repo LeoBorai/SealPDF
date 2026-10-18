@@ -1,8 +1,8 @@
 use super::{offered, open_keystore};
 use crate::{args::KeystoreArgs, exit::Failure};
-use certsign_keystore::Entry;
 use chrono::DateTime;
 use der::Decode;
+use sealpdf_keystore::Entry;
 use x509_cert::{Certificate, name::Name};
 
 pub fn run(args: &KeystoreArgs) -> Result<(), Failure> {

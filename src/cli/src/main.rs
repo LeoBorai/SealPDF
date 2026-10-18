@@ -21,7 +21,7 @@ fn main() {
     match commands::run(cli.command) {
         Ok(()) => std::process::exit(exit::OK),
         Err(failure) => {
-            eprintln!("certsign: {}", failure.message);
+            eprintln!("sealpdf: {}", failure.message);
             std::process::exit(failure.code);
         }
     }

@@ -1,11 +1,11 @@
 [package]
-name = "certsign-cli"
+name = "sealpdf-cli"
 version.workspace = true
 edition.workspace = true
 publish.workspace = true
 
 [[bin]]
-name = "certsign"
+name = "sealpdf"
 path = "src/main.rs"
 
 [dependencies]
@@ -18,14 +18,14 @@ tracing.workspace = true
 tracing-subscriber.workspace = true
 x509-cert.workspace = true
 
-certsign-core.workspace = true
-certsign-keystore.workspace = true
-certsign-pades.workspace = true
+sealpdf-core.workspace = true
+sealpdf-keystore.workspace = true
+sealpdf-pades.workspace = true
 
 [dev-dependencies]
 assert_cmd.workspace = true
-certsign-cms.workspace = true
-certsign-pdf.workspace = true
+sealpdf-cms.workspace = true
+sealpdf-pdf.workspace = true
 lopdf.workspace = true
 p12-keystore.workspace = true
 predicates.workspace = true

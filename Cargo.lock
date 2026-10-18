@@ -301,132 +301,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "certsign-cli"
-version = "0.1.2"
-dependencies = [
- "assert_cmd",
- "certsign-cms",
- "certsign-core",
- "certsign-keystore",
- "certsign-pades",
- "certsign-pdf",
- "chrono",
- "clap",
- "der 0.8.2",
- "lopdf",
- "p12-keystore",
- "predicates",
- "rpassword",
- "tempfile",
- "tracing",
- "tracing-subscriber",
- "x509-cert 0.3.0",
-]
-
-[[package]]
-name = "certsign-cms"
-version = "0.1.2"
-dependencies = [
- "base64 0.23.1",
- "certsign-core",
- "certsign-pdf",
- "cms 0.3.0-rc.0",
- "const-oid 0.10.2",
- "der 0.8.2",
- "lopdf",
- "p256",
- "p384",
- "rsa",
- "sha2 0.11.1",
- "spki 0.8.1",
- "tempfile",
- "x509-cert 0.3.0",
-]
-
-[[package]]
-name = "certsign-core"
-version = "0.1.2"
-dependencies = [
- "chrono",
- "serde",
- "thiserror",
- "toml",
-]
-
-[[package]]
-name = "certsign-keystore"
-version = "0.1.2"
-dependencies = [
- "certsign-cms",
- "certsign-core",
- "chrono",
- "cryptoki",
- "der 0.8.2",
- "p12-keystore",
- "p256",
- "p384",
- "rand_core 0.6.4",
- "rsa",
- "secrecy",
- "security-framework",
- "sha2 0.11.1",
- "spki 0.8.1",
- "tempfile",
- "x509-cert 0.3.0",
- "zeroize",
-]
-
-[[package]]
-name = "certsign-pades"
-version = "0.1.2"
-dependencies = [
- "certsign-cms",
- "certsign-core",
- "certsign-keystore",
- "certsign-pdf",
- "chrono",
- "cms 0.3.0-rc.0",
- "der 0.8.2",
- "lopdf",
- "p12-keystore",
- "sha2 0.11.1",
- "tempfile",
- "x509-cert 0.3.0",
-]
-
-[[package]]
-name = "certsign-pdf"
-version = "0.1.2"
-dependencies = [
- "certsign-core",
- "chrono",
- "flate2",
- "lopdf",
- "png",
- "sha2 0.11.1",
- "tempfile",
-]
-
-[[package]]
-name = "certsign-tsp"
-version = "0.1.2"
-dependencies = [
- "certsign-core",
- "chrono",
- "cms 0.3.0-rc.0",
- "const-oid 0.10.2",
- "der 0.8.2",
- "getrandom 0.4.3",
- "sha1 0.11.0",
- "sha2 0.11.1",
- "spki 0.8.1",
- "tempfile",
- "thiserror",
- "ureq",
- "x509-cert 0.3.0",
-]
-
-[[package]]
 name = "cfg-if"
 version = "1.0.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1944,6 +1818,132 @@ dependencies = [
  "pbkdf2",
  "salsa20",
  "sha2 0.10.9",
+]
+
+[[package]]
+name = "sealpdf-cli"
+version = "0.1.2"
+dependencies = [
+ "assert_cmd",
+ "chrono",
+ "clap",
+ "der 0.8.2",
+ "lopdf",
+ "p12-keystore",
+ "predicates",
+ "rpassword",
+ "sealpdf-cms",
+ "sealpdf-core",
+ "sealpdf-keystore",
+ "sealpdf-pades",
+ "sealpdf-pdf",
+ "tempfile",
+ "tracing",
+ "tracing-subscriber",
+ "x509-cert 0.3.0",
+]
+
+[[package]]
+name = "sealpdf-cms"
+version = "0.1.2"
+dependencies = [
+ "base64 0.23.1",
+ "cms 0.3.0-rc.0",
+ "const-oid 0.10.2",
+ "der 0.8.2",
+ "lopdf",
+ "p256",
+ "p384",
+ "rsa",
+ "sealpdf-core",
+ "sealpdf-pdf",
+ "sha2 0.11.1",
+ "spki 0.8.1",
+ "tempfile",
+ "x509-cert 0.3.0",
+]
+
+[[package]]
+name = "sealpdf-core"
+version = "0.1.2"
+dependencies = [
+ "chrono",
+ "serde",
+ "thiserror",
+ "toml",
+]
+
+[[package]]
+name = "sealpdf-keystore"
+version = "0.1.2"
+dependencies = [
+ "chrono",
+ "cryptoki",
+ "der 0.8.2",
+ "p12-keystore",
+ "p256",
+ "p384",
+ "rand_core 0.6.4",
+ "rsa",
+ "sealpdf-cms",
+ "sealpdf-core",
+ "secrecy",
+ "security-framework",
+ "sha2 0.11.1",
+ "spki 0.8.1",
+ "tempfile",
+ "x509-cert 0.3.0",
+ "zeroize",
+]
+
+[[package]]
+name = "sealpdf-pades"
+version = "0.1.2"
+dependencies = [
+ "chrono",
+ "cms 0.3.0-rc.0",
+ "der 0.8.2",
+ "lopdf",
+ "p12-keystore",
+ "sealpdf-cms",
+ "sealpdf-core",
+ "sealpdf-keystore",
+ "sealpdf-pdf",
+ "sha2 0.11.1",
+ "tempfile",
+ "x509-cert 0.3.0",
+]
+
+[[package]]
+name = "sealpdf-pdf"
+version = "0.1.2"
+dependencies = [
+ "chrono",
+ "flate2",
+ "lopdf",
+ "png",
+ "sealpdf-core",
+ "sha2 0.11.1",
+ "tempfile",
+]
+
+[[package]]
+name = "sealpdf-tsp"
+version = "0.1.2"
+dependencies = [
+ "chrono",
+ "cms 0.3.0-rc.0",
+ "const-oid 0.10.2",
+ "der 0.8.2",
+ "getrandom 0.4.3",
+ "sealpdf-core",
+ "sha1 0.11.0",
+ "sha2 0.11.1",
+ "spki 0.8.1",
+ "tempfile",
+ "thiserror",
+ "ureq",
+ "x509-cert 0.3.0",
 ]
 
 [[package]]

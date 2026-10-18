@@ -1,20 +1,20 @@
 #!/bin/sh
-# Installs the latest `certsign` release for this system.
+# Installs the latest `sealpdf` release for this system.
 #
-#   curl --proto '=https' --tlsv1.2 -sSf https://raw.githubusercontent.com/LeoBorai/certsign/main/install.sh | sh
+#   curl --proto '=https' --tlsv1.2 -sSf https://raw.githubusercontent.com/LeoBorai/SealPDF/main/install.sh | sh
 #
 # Options, as environment variables:
-#   CERTSIGN_VERSION      a release tag such as v0.1.0 (default: the latest release)
-#   CERTSIGN_INSTALL_DIR  where to put the binary (default: $HOME/.local/bin)
+#   SEALPDF_VERSION      a release tag such as v0.1.0 (default: the latest release)
+#   SEALPDF_INSTALL_DIR  where to put the binary (default: $HOME/.local/bin)
 #
 # The download is checked against the SHA-256 published next to it. Nothing is installed if the
 # check fails. Windows is not covered by this script: download the .zip from the releases page.
 
 set -eu
 
-REPO="LeoBorai/certsign"
+REPO="LeoBorai/SealPDF"
 
-say() { printf 'certsign-install: %s\n' "$*" >&2; }
+say() { printf 'sealpdf-install: %s\n' "$*" >&2; }
 die() { say "error: $*"; exit 1; }
 need() { command -v "$1" >/dev/null 2>&1 || die "'$1' is required but not found"; }
 
@@ -44,7 +44,7 @@ target() {
     case "$os" in
         Linux)
             if ldd --version 2>&1 | grep -qi musl; then
-                die "the Linux build needs glibc; this system uses musl (Alpine). Build from source: cargo install --git https://github.com/$REPO certsign-cli"
+                die "the Linux build needs glibc; this system uses musl (Alpine). Build from source: cargo install --git https://github.com/$REPO sealpdf-cli"
             fi
             echo "${arch}-unknown-linux-gnu"
             ;;
@@ -59,10 +59,10 @@ latest_tag() {
     # the GitHub API and its rate limit.
     if command -v curl >/dev/null 2>&1; then
         url="$(curl --proto '=https' --tlsv1.2 -fsSL -o /dev/null -w '%{url_effective}' "https://github.com/$REPO/releases/latest")" \
-            || die "cannot find the latest release; is there one yet? Set CERTSIGN_VERSION to a tag"
+            || die "cannot find the latest release; is there one yet? Set SEALPDF_VERSION to a tag"
         echo "${url##*/}"
     else
-        die "finding the latest release needs 'curl'; set CERTSIGN_VERSION instead"
+        die "finding the latest release needs 'curl'; set SEALPDF_VERSION instead"
     fi
 }
 
@@ -82,11 +82,11 @@ main() {
     need mktemp
 
     triple="$(target)"
-    tag="${CERTSIGN_VERSION:-$(latest_tag)}"
+    tag="${SEALPDF_VERSION:-$(latest_tag)}"
     case "$tag" in v[0-9]*) ;; *) die "unexpected release tag: '$tag'" ;; esac
-    dest="${CERTSIGN_INSTALL_DIR:-$HOME/.local/bin}"
+    dest="${SEALPDF_INSTALL_DIR:-$HOME/.local/bin}"
 
-    name="certsign-${tag}-${triple}"
+    name="sealpdf-${tag}-${triple}"
     base="https://github.com/$REPO/releases/download/$tag"
 
     tmp="$(mktemp -d)"
@@ -101,15 +101,15 @@ main() {
     [ -n "$expected" ] && [ "$expected" = "$actual" ] || die "checksum mismatch: expected '$expected', got '$actual'"
 
     tar -xzf "$tmp/$name.tar.gz" -C "$tmp"
-    [ -f "$tmp/$name/certsign" ] || die "the archive has no 'certsign' binary"
+    [ -f "$tmp/$name/sealpdf" ] || die "the archive has no 'sealpdf' binary"
 
     mkdir -p "$dest"
     # Copy beside the target, then rename: an interrupted install never leaves a partial binary.
-    cp "$tmp/$name/certsign" "$dest/.certsign.new"
-    chmod 755 "$dest/.certsign.new"
-    mv -f "$dest/.certsign.new" "$dest/certsign"
+    cp "$tmp/$name/sealpdf" "$dest/.sealpdf.new"
+    chmod 755 "$dest/.sealpdf.new"
+    mv -f "$dest/.sealpdf.new" "$dest/sealpdf"
 
-    say "installed certsign $tag to $dest/certsign"
+    say "installed sealpdf $tag to $dest/sealpdf"
     case ":$PATH:" in
         *":$dest:"*) ;;
         *) say "add $dest to your PATH, for example: export PATH=\"$dest:\$PATH\"" ;;

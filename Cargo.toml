@@ -1,12 +1,12 @@
 [workspace]
 resolver = "2"
 members = [
-    "src/certsign-core",
-    "src/certsign-pdf",
-    "src/certsign-cms",
-    "src/certsign-tsp",
-    "src/certsign-keystore",
-    "src/certsign-pades",
+    "src/sealpdf-core",
+    "src/sealpdf-pdf",
+    "src/sealpdf-cms",
+    "src/sealpdf-tsp",
+    "src/sealpdf-keystore",
+    "src/sealpdf-pades",
     "src/cli",
 ]
 default-members = ["src/cli"]
@@ -51,9 +51,9 @@ thiserror = "2.0"
 tracing = "0.1.44"
 tracing-subscriber = "0.3.23"
 
-certsign-core = { path = "src/certsign-core" }
-certsign-pdf = { path = "src/certsign-pdf" }
-certsign-cms = { path = "src/certsign-cms" }
-certsign-tsp = { path = "src/certsign-tsp" }
-certsign-keystore = { path = "src/certsign-keystore" }
-certsign-pades = { path = "src/certsign-pades" }
+sealpdf-core = { path = "src/sealpdf-core" }
+sealpdf-pdf = { path = "src/sealpdf-pdf" }
+sealpdf-cms = { path = "src/sealpdf-cms" }
+sealpdf-tsp = { path = "src/sealpdf-tsp" }
+sealpdf-keystore = { path = "src/sealpdf-keystore" }
+sealpdf-pades = { path = "src/sealpdf-pades" }

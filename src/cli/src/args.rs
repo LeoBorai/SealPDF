@@ -3,7 +3,7 @@ use std::path::PathBuf;
 
 /// Sign PDF documents with the digital certificate installed on your system.
 #[derive(Debug, Parser)]
-#[command(name = "certsign", version, about)]
+#[command(name = "sealpdf", version, about)]
 pub struct Cli {
     /// Print what is being done on stderr. Never prints passwords or keys.
     #[arg(long, global = true)]
@@ -42,7 +42,7 @@ pub struct SignArgs {
     #[command(flatten)]
     pub keystore: KeystoreArgs,
 
-    /// Sign with the certificate of this alias (see `certsign list-certs`).
+    /// Sign with the certificate of this alias (see `sealpdf list-certs`).
     #[arg(long)]
     pub alias: Option<String>,
 
