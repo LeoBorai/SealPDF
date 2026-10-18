@@ -44,6 +44,56 @@ flowchart TD
     N --> O(["exit 0"])
 ```
 
+## How the certificate is found and used
+
+`certsign` does not request or enroll certificates from a certificate authority: no CSR is made and nothing is issued. The certificate must already exist, in the macOS Keychain or in a PKCS#12 (`.p12`) file. This diagram shows how `sign` gets from `--keystore` to a signature.
+
+```mermaid
+flowchart TD
+    S(["--keystore"]) --> T{"Value"}
+    T -- "absent, macOS" --> KC
+    T -- "absent, other systems" --> E1["exit 2: --keystore is required"]
+    T -- "keychain" --> KC["Open the Keychain search list<br/>no password asked by certsign"]
+    T -- "pkcs12:file" --> PW{"--password-env VAR given?"}
+    T -- "anything else" --> E2["exit 2: unknown keystore type"]
+
+    PW -- yes --> V{"VAR is set?"}
+    V -- yes --> OPEN
+    V -- no --> E3["exit 4: variable is not set"]
+    PW -- no --> TTY{"stdin is a terminal?"}
+    TTY -- yes --> ASK["Ask on stderr, no echo"] --> OPEN
+    TTY -- no --> E4["exit 4: no terminal, use --password-env"]
+
+    OPEN["Decrypt the file once<br/>list identities: certificate, chain, key"] --> ENT
+    KC --> ENT["Entries of the store"]
+    ENT --> AL{"--alias given?"}
+
+    AL -- yes --> EX{"An entry has this alias?"}
+    EX -- no --> E5["exit 4: unknown alias"]
+    EX -- yes --> PICKED
+    AL -- no --> FIL["Default filters<br/>hide expired and not yet valid<br/>hide DNIe authentication certificate"]
+    FIL --> N{"Entries left"}
+    N -- 0 --> E6["exit 4: no signing certificate found"]
+    N -- 1 --> PICKED
+    N -- several --> TT{"stdin is a terminal?"}
+    TT -- no --> E7["exit 2: choose one with --alias"]
+    TT -- yes --> NUM["Numbered list on stderr<br/>read a number"] --> PICKED
+
+    PICKED["Selected alias"] --> PARSE["sign_pdf reads its certificate and chain<br/>RSA or ECDSA is chosen from the key type"]
+    PARSE --> HASH["Hash the PDF bytes covered by /ByteRange<br/>build the CMS signed attributes"]
+    HASH --> USE{"Store type"}
+    USE -- "PKCS#12" --> SIGN1["Sign with the key decrypted at open"]
+    USE -- "Keychain" --> SIGN2["macOS signs inside the Keychain<br/>shows its own allow prompt: password or Touch ID<br/>certsign never sees the key"]
+    SIGN1 --> EMB
+    SIGN2 --> EMB["Embed the CMS, with the chain, in /Contents"]
+```
+
+Notes:
+
+- `--alias` skips the filters, so an expired certificate can be used by naming it, but it must exist in the store.
+- A PKCS#12 password is asked once per run and is never stored.
+- Only the signed attributes go to the key. On the Keychain path the private key never leaves macOS.
+
 ## What `sign_pdf` does
 
 ```mermaid
