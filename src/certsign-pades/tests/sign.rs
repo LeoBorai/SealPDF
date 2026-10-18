@@ -355,8 +355,8 @@ fn a_cms_that_does_not_fit_is_an_error() {
 #[test]
 fn names_outside_ascii_are_written_as_utf16() {
     let Some(pki) = Pki::new() else { return };
-    let leaf = pki.leaf("María Núñez", None);
-    let out = sign(&blank_pdf(1, false), &store(&pki, &leaf), "María Núñez").unwrap();
+    let leaf = pki.leaf("Jöhn Äppleseed", None);
+    let out = sign(&blank_pdf(1, false), &store(&pki, &leaf), "Jöhn Äppleseed").unwrap();
     let pdf = certsign_pdf::PdfDocument::open(out, None).unwrap();
     let id = pdf.signatures()[0].value.as_ref().unwrap().id.unwrap();
     let name = pdf
@@ -370,7 +370,7 @@ fn names_outside_ascii_are_written_as_utf16() {
         .to_vec();
     let expected: Vec<u8> = [0xFE, 0xFF]
         .into_iter()
-        .chain("María Núñez".encode_utf16().flat_map(u16::to_be_bytes))
+        .chain("Jöhn Äppleseed".encode_utf16().flat_map(u16::to_be_bytes))
         .collect();
     assert_eq!(name, expected);
 }
