@@ -1822,7 +1822,7 @@ dependencies = [
 
 [[package]]
 name = "sealpdf-cli"
-version = "0.1.3"
+version = "0.1.4"
 dependencies = [
  "assert_cmd",
  "chrono",
@@ -1845,7 +1845,7 @@ dependencies = [
 
 [[package]]
 name = "sealpdf-cms"
-version = "0.1.3"
+version = "0.1.4"
 dependencies = [
  "base64 0.23.1",
  "cms 0.3.0-rc.0",
@@ -1865,7 +1865,7 @@ dependencies = [
 
 [[package]]
 name = "sealpdf-core"
-version = "0.1.3"
+version = "0.1.4"
 dependencies = [
  "chrono",
  "serde",
@@ -1875,7 +1875,7 @@ dependencies = [
 
 [[package]]
 name = "sealpdf-ffi"
-version = "0.1.3"
+version = "0.1.4"
 dependencies = [
  "lopdf",
  "sealpdf-core",
@@ -1887,7 +1887,7 @@ dependencies = [
 
 [[package]]
 name = "sealpdf-keystore"
-version = "0.1.3"
+version = "0.1.4"
 dependencies = [
  "chrono",
  "cryptoki",
@@ -1910,7 +1910,7 @@ dependencies = [
 
 [[package]]
 name = "sealpdf-pades"
-version = "0.1.3"
+version = "0.1.4"
 dependencies = [
  "chrono",
  "cms 0.3.0-rc.0",
@@ -1928,7 +1928,7 @@ dependencies = [
 
 [[package]]
 name = "sealpdf-pdf"
-version = "0.1.3"
+version = "0.1.4"
 dependencies = [
  "chrono",
  "flate2",
@@ -1941,7 +1941,7 @@ dependencies = [
 
 [[package]]
 name = "sealpdf-tsp"
-version = "0.1.3"
+version = "0.1.4"
 dependencies = [
  "chrono",
  "cms 0.3.0-rc.0",
