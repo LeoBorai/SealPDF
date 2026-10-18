@@ -181,7 +181,7 @@ impl Pki {
                 "v.bin",
                 "-noverify",
                 "-out",
-                "/dev/null",
+                "verified.out",
             ],
         )
     }

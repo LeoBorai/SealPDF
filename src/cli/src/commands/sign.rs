@@ -213,12 +213,10 @@ mod tests {
         assert!(same_file(&a, &a));
         assert!(!same_file(&a, &dir.path().join("b.pdf")));
         // A file that does not exist yet.
-        assert!(
-            same_file(
-                &dir.path().join("new.pdf"),
-                &dir.path().join("sub/../new.pdf")
-            ) || true
-        );
+        assert!(same_file(
+            &dir.path().join("new.pdf"),
+            &dir.path().join("./new.pdf")
+        ));
         assert!(!same_file(&a, &dir.path().join("nested").join("a.pdf")));
     }
 }

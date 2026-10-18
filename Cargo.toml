@@ -6,9 +6,7 @@ members = [
     "src/certsign-cms",
     "src/certsign-tsp",
     "src/certsign-keystore",
-    "src/certsign-render",
     "src/certsign-pades",
-    "src/certsign-validate",
     "src/cli",
 ]
 default-members = ["src/cli"]
@@ -19,7 +17,6 @@ version = "0.1.0"
 edition = "2024"
 
 [workspace.dependencies]
-anyhow = "1.0"
 assert_cmd = "2"
 predicates = "3"
 base64 = "0.23"
@@ -44,8 +41,7 @@ rpassword = "7"
 serde = "1.0"
 sha1 = "0.11"
 sha2 = "0.11"
-serde_json = "1.0"
-toml = "0.8"
+toml = "1"
 ureq = "3"
 spki = "0.8"
 x509-cert = "0.3"
@@ -60,6 +56,4 @@ certsign-pdf = { path = "src/certsign-pdf" }
 certsign-cms = { path = "src/certsign-cms" }
 certsign-tsp = { path = "src/certsign-tsp" }
 certsign-keystore = { path = "src/certsign-keystore" }
-certsign-render = { path = "src/certsign-render" }
 certsign-pades = { path = "src/certsign-pades" }
-certsign-validate = { path = "src/certsign-validate" }

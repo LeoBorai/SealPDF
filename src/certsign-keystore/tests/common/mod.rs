@@ -187,7 +187,10 @@ impl Pki {
         let d = self.path();
         let out = format!("{}.p12", leaf.name);
         let (key, pem) = (format!("{}.key", leaf.name), format!("{}.pem", leaf.name));
-        let pass = format!("pass:{password}");
+        // A file, not `pass:`, so that a non-ASCII password reaches OpenSSL as UTF-8 on Windows,
+        // where arguments go through the ANSI code page.
+        std::fs::write(d.join(format!("{}.pass", leaf.name)), password).unwrap();
+        let pass = format!("file:{}.pass", leaf.name);
         let mut args = vec![
             "pkcs12",
             "-export",

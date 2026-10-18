@@ -65,6 +65,8 @@ Nothing is written, and certsign says why, when the PDF is encrypted (not suppor
 | 4 | A certificate, password or key access problem (wrong password, access declined, no such alias) |
 | 6 | Anything else |
 
+The full behaviour of each command, with diagrams, is in [docs/cli](docs/cli/README.md).
+
 ## Opening a signed PDF
 
 A signature made with a certificate from a private or unknown authority is valid, but Adobe Acrobat shows "validity unknown" until it trusts the certificate's issuer. That is a trust setting, not a problem with the signature. Certificates from authorities in Adobe's trusted list show as valid.

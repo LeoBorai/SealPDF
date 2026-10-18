@@ -144,14 +144,23 @@ impl Pki {
             format!("{name}.csr"),
             format!("{name}.pem"),
         );
-        let subj = format!("/CN={name}/O=certsign");
+        // The subject comes from a config file: on Windows a non-ASCII command-line argument
+        // does not reach OpenSSL as UTF-8.
+        let conf = format!("{name}.req.cnf");
+        std::fs::write(
+            d.join(&conf),
+            format!(
+                "[req]\ndistinguished_name = dn\nprompt = no\nutf8 = yes\nstring_mask = utf8only\n\n[dn]\nCN = {name}\nO = certsign\n"
+            ),
+        )
+        .unwrap();
         let curve_opt = curve.map(|c| format!("ec_paramgen_curve:{c}"));
         let algo: Vec<&str> = match &curve_opt {
             Some(c) => vec!["-newkey", "ec", "-pkeyopt", c],
             None => vec!["-newkey", "rsa:2048"],
         };
         let mut args = vec![
-            "req", "-utf8", "-new", "-nodes", "-keyout", &key, "-out", &csr, "-subj", &subj,
+            "req", "-utf8", "-new", "-nodes", "-config", &conf, "-keyout", &key, "-out", &csr,
         ];
         args.extend_from_slice(&algo);
         assert!(openssl(d, &args));

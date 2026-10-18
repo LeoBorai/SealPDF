@@ -153,7 +153,7 @@ fn openssl_signs_and_verifies_the_byte_range() {
                     "covered.bin",
                     "-noverify",
                     "-out",
-                    "/dev/null"
+                    "verified.out"
                 ],
                 d
             ),
@@ -179,7 +179,7 @@ fn openssl_signs_and_verifies_the_byte_range() {
                     "tampered.bin",
                     "-noverify",
                     "-out",
-                    "/dev/null"
+                    "verified.out"
                 ],
                 d
             ),

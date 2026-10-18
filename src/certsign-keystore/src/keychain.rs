@@ -106,6 +106,14 @@ impl KeychainKeyStore {
     /// Opens only the keychain file at `path`.
     pub fn open_in(path: &std::path::Path) -> Result<Self> {
         use security_framework::os::macos::keychain::SecKeychain;
+        // The Security framework hands out a handle for a path that does not exist and only fails
+        // later, on first use, so a missing file has to be rejected here.
+        if !path.is_file() {
+            return Err(backend(format!(
+                "cannot open the keychain {}: no such file",
+                path.display()
+            )));
+        }
         let keychain = SecKeychain::open(path)
             .map_err(|e| backend(format!("cannot open the keychain {}: {e}", path.display())))?;
         Self::from_keychains(Some(vec![keychain]))

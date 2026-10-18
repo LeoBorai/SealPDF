@@ -25,5 +25,4 @@ x509-cert.workspace = true
 certsign-core.workspace = true
 
 [dev-dependencies]
-base64.workspace = true
 tempfile.workspace = true
