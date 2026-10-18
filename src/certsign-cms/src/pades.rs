@@ -60,7 +60,7 @@ fn null() -> Any {
     Any::new(Tag::Null, Vec::new()).expect("NULL is valid")
 }
 
-/// Digest algorithm identifier, with NULL parameters as AutoFirma writes it.
+/// Digest algorithm identifier, with NULL parameters, as other implementations write it.
 fn digest_alg(d: DigestAlg) -> AlgorithmIdentifierOwned {
     AlgorithmIdentifierOwned {
         oid: digest_oid(d),
@@ -70,7 +70,7 @@ fn digest_alg(d: DigestAlg) -> AlgorithmIdentifierOwned {
 
 fn signature_alg(alg: SigAlg) -> AlgorithmIdentifierOwned {
     match alg.key {
-        // AutoFirma names plain rsaEncryption and relies on the digest algorithm field.
+        // Name plain rsaEncryption and rely on the digest algorithm field.
         KeyType::Rsa => AlgorithmIdentifierOwned {
             oid: oids::RSA_ENCRYPTION,
             parameters: Some(null()),
@@ -125,7 +125,7 @@ impl SignedAttrs {
 /// 1. [`PadesCms::signed_attributes`] gives the bytes to sign;
 /// 2. [`PadesCms::assemble`] wraps the resulting signature value.
 ///
-/// The structure follows AutoFirma's PAdES mode: no content, version 1, signer identified by
+/// The structure follows the PAdES detached mode: no content, version 1, signer identified by
 /// issuer and serial number, attributes `contentType` (id-data), `messageDigest` and
 /// `signingCertificateV2`, and no `signingTime` (the time lives in the signature dictionary).
 pub struct PadesCms {

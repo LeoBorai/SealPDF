@@ -134,7 +134,7 @@ fn offered(filters: CertFilters, entries: &[Entry], clock: &dyn Clock) -> Vec<St
 }
 
 #[test]
-fn defaults_are_autofirmas() {
+fn defaults_are_the_documented_ones() {
     let d = CertFilters::default();
     assert!(
         !d.show_expired && !d.only_signature && !d.only_alias,
@@ -301,7 +301,7 @@ fn dnie_filter_depends_on_the_key_usage() {
     let now = later();
     let cases = [
         (Some("digitalSignature"), true),
-        // AutoFirma only requires digitalSignature, so a certificate that also has
+        // Only digitalSignature is required, so a certificate that also has
         // nonRepudiation counts as an authentication certificate and is skipped as well.
         (Some("digitalSignature,nonRepudiation"), true),
         (Some("nonRepudiation"), false),

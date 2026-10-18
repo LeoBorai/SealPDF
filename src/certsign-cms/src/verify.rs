@@ -13,7 +13,7 @@ use p256::ecdsa::signature::hazmat::PrehashVerifier;
 use rsa::{BigUint, Pkcs1v15Sign, RsaPublicKey};
 use x509_cert::{Certificate, ext::pkix::SubjectKeyIdentifier};
 
-/// Why a signature did not verify. `kind` is the identifier AutoFirma reports.
+/// Why a signature did not verify. `kind` is a stable identifier.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct VerifyError {
     pub kind: ValidityError,
@@ -131,7 +131,7 @@ fn pkcs1_prefix(d: DigestAlg) -> Vec<u8> {
 /// (PKCS#1 v1.5) or ECDSA (P-256, P-384) signature by a certificate embedded in the CMS.
 /// Trailing bytes after the CMS, such as the zero padding of `/Contents`, are ignored.
 ///
-/// Errors carry AutoFirma's identifiers: `CORRUPTED_SIGN` for a CMS that cannot be read or
+/// Errors carry these identifiers: `CORRUPTED_SIGN` for a CMS that cannot be read or
 /// whose signature does not verify, `NO_MATCH_DATA` when `content` is not what was signed,
 /// `NO_SIGN` without a signer, `CERTIFICATE_PROBLEM` without the signer's certificate, and
 /// `ALGORITHM_NOT_SUPPORTED` outside the allow-list.

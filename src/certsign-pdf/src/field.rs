@@ -308,7 +308,7 @@ fn ensure_sig_flags(w: &mut IncrementalWriter<'_>) -> Result<()> {
     }
 }
 
-/// The page rectangle as AutoFirma checks it: the crop box, with width and height swapped
+/// The page rectangle used for placement: the crop box, with width and height swapped
 /// for pages rotated by 90 or 270 degrees.
 fn sized_box(page: &Page) -> [f32; 4] {
     let [llx, lly, urx, ury] = page.crop_box;

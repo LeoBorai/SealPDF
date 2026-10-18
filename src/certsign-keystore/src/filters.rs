@@ -1,8 +1,7 @@
 //! Which of a key store's certificates are offered for signing.
 //!
 //! A key store lists every identity it holds, including expired ones and certificates meant for
-//! logging in rather than signing. [`CertFilters`] narrows that list with the four preferences
-//! users already know from AutoFirma, with the same defaults and the same meaning.
+//! logging in rather than signing. [`CertFilters`] narrows that list with four switches.
 //!
 //! Filters decide what is *offered*. They do not stop a caller from signing with an alias it
 //! names explicitly.
@@ -19,12 +18,12 @@ use x509_cert::{
 
 /// The certificate filter preferences.
 ///
-/// | field | AutoFirma preference | default |
-/// | --- | --- | --- |
-/// | `show_expired` | `showExpiredCerts` | `false` |
-/// | `only_signature` | `useOnlySignatureCertificates` | `false` |
-/// | `only_alias` | `useOnlyAliasCertificates` | `false` |
-/// | `skip_dnie_auth` | `skipAuthCertDnie` | `true` |
+/// | field | default |
+/// | --- | --- |
+/// | `show_expired` | `false` |
+/// | `only_signature` | `false` |
+/// | `only_alias` | `false` |
+/// | `skip_dnie_auth` | `true` |
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct CertFilters {
     /// Offer certificates outside their validity period (expired or not yet valid).
@@ -137,7 +136,7 @@ fn has(name: &Name, oid: ObjectIdentifier, ok: impl Fn(&str) -> bool) -> bool {
 }
 
 /// The authentication certificate of a DNIe: issued by "AC DNIE ..." of the Spanish police, and
-/// able to make digital signatures (AutoFirma's `AuthenticationDNIeFilter`).
+/// able to make digital signatures.
 fn is_dnie_authentication(cert: &Certificate) -> bool {
     let issuer = cert.tbs_certificate().issuer();
     let equals = |want: &'static str| move |t: &str| t.eq_ignore_ascii_case(want);

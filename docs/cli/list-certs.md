@@ -44,7 +44,7 @@ sequenceDiagram
     CLI->>User: table on stdout
 ```
 
-Default filters (the AutoFirma defaults):
+Default filters:
 
 | Filter | Default | Effect |
 | --- | --- | --- |

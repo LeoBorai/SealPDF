@@ -286,7 +286,7 @@ fn fits(font: &FontSpec, text: &str, size: f32, width: f32, height: f32) -> Opti
 }
 
 /// Fits `text` into `width` x `height` by shrinking the font from `font.size` until it fits,
-/// searching to 10 % precision, like the AutoFirma implementation.
+/// searching to 10 % precision.
 pub fn layout_text(font: &FontSpec, text: &str, width: f32, height: f32) -> TextLayout {
     let mut max = font.size;
     if max <= 0.0 {

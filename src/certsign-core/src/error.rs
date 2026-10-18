@@ -148,7 +148,7 @@ pub enum Error {
     Validity(ValidityError),
     #[error("signature needs {needed} bytes but only {reserved} are reserved in /Contents")]
     SignatureTooLarge { needed: usize, reserved: usize },
-    /// The document was turned away before signing, for a reason that is not an AutoFirma code.
+    /// The document was turned away before signing, for a reason that has no numeric code.
     #[error("{0}")]
     Refused(String),
     #[error("timestamp: {0}")]
@@ -162,7 +162,7 @@ pub enum Error {
 }
 
 impl Error {
-    /// AutoFirma-compatible numeric code, when the error maps to one.
+    /// The numeric code of the error, when it has one.
     pub fn code(&self) -> Option<ErrorCode> {
         match self {
             Self::Pdf(code) => Some(*code),
@@ -191,7 +191,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn pdf_error_codes_match_autofirma() {
+    fn pdf_error_codes_are_stable() {
         let cases = [
             (ErrorCode::PDF_WITH_UNREGISTERED_SIGNATURES, "212003"),
             (ErrorCode::PDF_BAD_PASSWORD, "212004"),

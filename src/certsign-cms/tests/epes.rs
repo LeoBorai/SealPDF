@@ -219,7 +219,7 @@ fn commitment_type_indications() {
             ("1.2.840.113549.1.9.16.6.6".to_string(), 1),
         ]
     );
-    // Qualifiers are a plain SEQUENCE OF OID, as AutoFirma writes them.
+    // Qualifiers are a plain SEQUENCE OF OID, as other implementations write them.
     let approval = found
         .iter()
         .map(|a| children(&value_of(a)))

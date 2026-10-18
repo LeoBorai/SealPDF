@@ -43,7 +43,7 @@ struct SignaturePolicyId {
     qualifiers: Option<Vec<SigPolicyQualifierInfo>>,
 }
 
-/// As AutoFirma writes it: the qualifiers are a plain `SEQUENCE OF OBJECT IDENTIFIER`.
+/// The qualifiers are a plain `SEQUENCE OF OBJECT IDENTIFIER`.
 ///
 /// ```text
 /// CommitmentTypeIndication ::= SEQUENCE { commitmentTypeId OID, qualifiers SEQUENCE OF OID OPTIONAL }
@@ -125,7 +125,8 @@ fn commitment_oid(identifier: &str) -> Result<ObjectIdentifier> {
 /// The `signaturePolicyIdentifier` attribute for `policy.identifier`.
 ///
 /// `signing_digest` is the hash algorithm of the signature, used when `policy.hash_algorithm`
-/// is absent. With no `policy.hash`, the hash value is the single byte `0x00`, as AutoFirma writes it.
+/// is absent. With no `policy.hash`, the hash value is the single byte `0x00`,
+/// as other implementations write it.
 fn signature_policy(
     policy: &Policy,
     identifier: &str,

@@ -54,7 +54,7 @@ impl TsaHash {
         }
     }
 
-    /// Parses `SHA-1`, `SHA256`, `sha-512`, ... The default of AutoFirma-compatible requests is SHA-512.
+    /// Parses `SHA-1`, `SHA256`, `sha-512`, ... The default for requests is SHA-512.
     pub fn from_name(name: &str) -> Option<Self> {
         let n: String = name
             .chars()

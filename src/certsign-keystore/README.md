@@ -29,14 +29,14 @@ Each entry that has a private key is listed with its chain from the end-entity c
 
 ## Certificate filters
 
-`CertFilters` narrows the entries a key store lists to the ones worth offering for signing. It carries the four preferences users know from AutoFirma, with the same defaults and meaning:
+`CertFilters` narrows the entries a key store lists to the ones worth offering for signing. It has four switches:
 
-| Field | Preference | Default | Effect |
-| --- | --- | --- | --- |
-| `show_expired` | `showExpiredCerts` | off | Off hides certificates outside their validity period, whether expired or not yet valid. |
-| `only_signature` | `useOnlySignatureCertificates` | off | On keeps only certificates whose key usage includes `nonRepudiation`. A certificate without a key usage extension does not qualify. |
-| `only_alias` | `useOnlyAliasCertificates` | off | On keeps only pseudonym certificates, those whose subject has the `pseudonym` attribute. |
-| `skip_dnie_auth` | `skipAuthCertDnie` | on | On drops a DNIe authentication certificate: one issued by "AC DNIE ..." (OU `DNIE`, O `DIRECCION GENERAL DE LA POLICIA`, C `ES`) with the `digitalSignature` key usage. |
+| Field | Default | Effect |
+| --- | --- | --- |
+| `show_expired` | off | Off hides certificates outside their validity period, whether expired or not yet valid. |
+| `only_signature` | off | On keeps only certificates whose key usage includes `nonRepudiation`. A certificate without a key usage extension does not qualify. |
+| `only_alias` | off | On keeps only pseudonym certificates, those whose subject has the `pseudonym` attribute. |
+| `skip_dnie_auth` | on | On drops a DNIe authentication certificate: one issued by "AC DNIE ..." (OU `DNIE`, O `DIRECCION GENERAL DE LA POLICIA`, C `ES`) with the `digitalSignature` key usage. |
 
 The filters combine with AND. `CertFilters::apply` takes a `Clock`, so validity is judged at a time the caller controls. Filters decide what is offered; they do not stop a caller from signing with an alias it names explicitly.
 
