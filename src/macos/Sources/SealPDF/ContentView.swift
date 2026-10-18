@@ -1,0 +1,118 @@
+import SwiftUI
+import UniformTypeIdentifiers
+
+struct ContentView: View {
+    @StateObject private var model = SignModel()
+
+    var body: some View {
+        HStack(spacing: 0) {
+            controls
+                .frame(width: 320)
+                .padding(20)
+            Divider()
+            preview
+        }
+        .frame(minWidth: 780, minHeight: 520)
+        .alert(
+            "Something went wrong",
+            isPresented: Binding(
+                get: { model.failure != nil },
+                set: { if !$0 { model.failure = nil } }
+            )
+        ) {
+            Button("OK", role: .cancel) {}
+        } message: {
+            Text(model.failure ?? "")
+        }
+    }
+
+    private var controls: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            GroupBox("Document") {
+                VStack(alignment: .leading, spacing: 8) {
+                    Button("Open PDF…") { model.chooseFile() }
+                    Text(model.input?.lastPathComponent ?? "No PDF chosen")
+                        .foregroundStyle(.secondary)
+                        .lineLimit(1)
+                        .truncationMode(.middle)
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(4)
+            }
+
+            GroupBox("Certificate") {
+                VStack(alignment: .leading, spacing: 10) {
+                    Picker("Source", selection: $model.source) {
+                        Text("Keychain").tag(CertificateSource.keychain)
+                        Text("File").tag(CertificateSource.file)
+                    }
+                    .pickerStyle(.segmented)
+                    .labelsHidden()
+
+                    if model.source == .file {
+                        fileControls
+                    }
+
+                    Picker("Sign with", selection: $model.selected) {
+                        ForEach(model.aliases, id: \.self) { Text($0).tag($0) }
+                    }
+                    .disabled(model.aliases.isEmpty)
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(4)
+            }
+
+            Button("Sign…") { Task { await model.sign() } }
+                .controlSize(.large)
+                .keyboardShortcut(.defaultAction)
+                .disabled(!model.canSign)
+
+            Text(model.status)
+                .foregroundStyle(.secondary)
+                .textSelection(.enabled)
+                .fixedSize(horizontal: false, vertical: true)
+
+            Spacer()
+        }
+    }
+
+    private var fileControls: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Button("Choose .p12 / .pfx…") { model.chooseCertificateFile() }
+            Text(model.certificateFile?.lastPathComponent ?? "No file chosen")
+                .foregroundStyle(.secondary)
+                .lineLimit(1)
+                .truncationMode(.middle)
+            if model.certificateFile != nil {
+                SecureField("Password", text: $model.password)
+                    .onSubmit { Task { await model.unlockCertificateFile() } }
+                Button("Unlock") { Task { await model.unlockCertificateFile() } }
+                    .disabled(!model.canUnlock)
+            }
+        }
+    }
+
+    private var preview: some View {
+        ZStack {
+            PDFPreview(url: model.input)
+            if model.input == nil {
+                VStack(spacing: 8) {
+                    Image(systemName: "doc.richtext")
+                        .font(.system(size: 44))
+                    Text("Open a PDF, or drop one here")
+                }
+                .foregroundStyle(.secondary)
+                .allowsHitTesting(false)
+            }
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(Color(nsColor: .underPageBackgroundColor))
+        .dropDestination(for: URL.self) { urls, _ in
+            guard let pdf = urls.first(where: { $0.pathExtension.lowercased() == "pdf" }) else {
+                return false
+            }
+            model.setInput(pdf)
+            return true
+        }
+    }
+}

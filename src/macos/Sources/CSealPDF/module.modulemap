@@ -1,0 +1,5 @@
+module CSealPDF {
+    // The one copy of the header lives with the Rust crate that implements it.
+    header "../../../sealpdf-ffi/include/sealpdf.h"
+    export *
+}

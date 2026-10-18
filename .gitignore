@@ -4,3 +4,5 @@
 /.refs
 
 openspec
+
+.build

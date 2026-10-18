@@ -19,6 +19,11 @@ fmt:
     cargo clippy --fix --workspace --allow-dirty --allow-staged
     cargo fmt
 
+# Runs the SwiftUI app (macOS with the Xcode command line tools)
+dev-macos:
+    cargo build -p sealpdf-ffi
+    swift run --package-path src/macos -Xlinker -L{{justfile_directory()}}/target/debug
+
 # Unit and integration tests
 test:
     cargo nextest run --workspace --no-tests=pass

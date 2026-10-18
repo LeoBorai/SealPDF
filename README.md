@@ -26,6 +26,8 @@ From source:
 cargo install --path src/cli      # installs the `sealpdf` command
 ```
 
+On macOS there is also a window, a SwiftUI app: `just dev-macos` (see [src/macos](src/macos/README.md)).
+
 Releases are built by `.github/workflows/release.yml` when a `vX.Y.Z` tag is pushed. The tag must match the workspace `version` in `Cargo.toml`.
 
 ## Use
