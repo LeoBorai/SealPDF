@@ -302,7 +302,7 @@ dependencies = [
 
 [[package]]
 name = "certsign-cli"
-version = "0.1.1"
+version = "0.1.2"
 dependencies = [
  "assert_cmd",
  "certsign-cms",
@@ -325,7 +325,7 @@ dependencies = [
 
 [[package]]
 name = "certsign-cms"
-version = "0.1.1"
+version = "0.1.2"
 dependencies = [
  "base64 0.23.1",
  "certsign-core",
@@ -345,7 +345,7 @@ dependencies = [
 
 [[package]]
 name = "certsign-core"
-version = "0.1.1"
+version = "0.1.2"
 dependencies = [
  "chrono",
  "serde",
@@ -355,7 +355,7 @@ dependencies = [
 
 [[package]]
 name = "certsign-keystore"
-version = "0.1.1"
+version = "0.1.2"
 dependencies = [
  "certsign-cms",
  "certsign-core",
@@ -378,7 +378,7 @@ dependencies = [
 
 [[package]]
 name = "certsign-pades"
-version = "0.1.1"
+version = "0.1.2"
 dependencies = [
  "certsign-cms",
  "certsign-core",
@@ -396,7 +396,7 @@ dependencies = [
 
 [[package]]
 name = "certsign-pdf"
-version = "0.1.1"
+version = "0.1.2"
 dependencies = [
  "certsign-core",
  "chrono",
@@ -409,7 +409,7 @@ dependencies = [
 
 [[package]]
 name = "certsign-tsp"
-version = "0.1.1"
+version = "0.1.2"
 dependencies = [
  "certsign-core",
  "chrono",
