@@ -1,0 +1,33 @@
+version: 2
+
+updates:
+  - package-ecosystem: cargo
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: "chore(deps)"
+    groups:
+      # One pull request for all minor and patch updates, so CI runs once per week.
+      cargo-minor-patch:
+        update-types: [minor, patch]
+    ignore:
+      # Held back on purpose, see deny.toml: these need pre-release crates that do not build
+      # together with the `cms` release candidate. Remove an entry when its blocker is gone.
+      - dependency-name: cms
+      - dependency-name: rsa
+      - dependency-name: p12-keystore
+      - dependency-name: rand_core
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    commit-message:
+      prefix: "chore(ci)"
+    groups:
+      actions:
+        update-types: [minor, patch]
