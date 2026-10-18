@@ -8,9 +8,21 @@ certsign sign contract.pdf        # writes contract_signed.pdf
 
 ## Install
 
+From a release (Linux and macOS, `x86_64` and `aarch64`):
+
+```
+curl --proto '=https' --tlsv1.2 -sSf https://raw.githubusercontent.com/LeoBorai/certsign/main/install.sh | sh
+```
+
+It installs to `~/.local/bin` (set `CERTSIGN_INSTALL_DIR` to change that, `CERTSIGN_VERSION=v0.1.0` to pick a release) and checks the SHA-256 of the download first. On Windows, download the `.zip` from the [releases page](https://github.com/LeoBorai/certsign/releases/latest).
+
+From source:
+
 ```
 cargo install --path src/cli      # installs the `certsign` command
 ```
+
+Releases are built by `.github/workflows/release.yml` when a `vX.Y.Z` tag is pushed. The tag must match the workspace `version` in `Cargo.toml`.
 
 ## Use
 
@@ -91,3 +103,5 @@ The tests build their certificates with the `openssl` command line tool and skip
 You can use the web based solution from the Spain Gov. to check on signatures.
 
 https://firmaelectronica.gob.es/ciudadanos/cosas-deberias-saber/validacion-firmas#valide
+
+Visit the site here: https://valide.redsara.es/valide/validarFirma/ejecutar.html
