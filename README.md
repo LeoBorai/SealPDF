@@ -83,3 +83,11 @@ cargo deny check -D warnings   # advisories, licenses, duplicate versions, sourc
 ```
 
 The tests build their certificates with the `openssl` command line tool and skip when it is missing. The PKCS#11 tests need SoftHSM2, and the interoperability tests need pyHanko (`pip install pyhanko`); both are required in CI. The macOS Keychain tests run only on macOS.
+
+## Extra
+
+### Validating a Signature
+
+You can use the web based solution from the Spain Gov. to check on signatures.
+
+https://firmaelectronica.gob.es/ciudadanos/cosas-deberias-saber/validacion-firmas#valide
