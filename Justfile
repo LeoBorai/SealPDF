@@ -29,9 +29,9 @@ build-macos:
     cargo build --release -p sealpdf-ffi
     swift build -c release --package-path src/macos -Xlinker -L{{justfile_directory()}}/target/release
 
-# Bundle the app into a standalone target/macos/SealPDF.app (macOS only, see src/macos/scripts/bundle.sh)
+# Bundle the app into a standalone target/macos/SealPDF.app (macOS only, see src/macos/Scripts/bundle.sh)
 bundle-macos: build-macos
-    src/macos/scripts/bundle.sh
+    src/macos/Scripts/bundle.sh
 
 # Unit and integration tests
 test:
