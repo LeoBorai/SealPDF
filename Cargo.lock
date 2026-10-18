@@ -1874,6 +1874,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "sealpdf-ffi"
+version = "0.1.3"
+dependencies = [
+ "lopdf",
+ "sealpdf-core",
+ "sealpdf-keystore",
+ "sealpdf-pades",
+ "sealpdf-pdf",
+ "tempfile",
+]
+
+[[package]]
 name = "sealpdf-keystore"
 version = "0.1.3"
 dependencies = [

@@ -8,6 +8,7 @@ members = [
     "src/sealpdf-keystore",
     "src/sealpdf-pades",
     "src/cli",
+    "src/sealpdf-ffi",
 ]
 default-members = ["src/cli"]
 

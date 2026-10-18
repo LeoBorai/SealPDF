@@ -92,9 +92,44 @@ jobs:
           path: dist/*
           if-no-files-found: error
 
+  # The macOS app, bundled from the release commit. Apple Silicon only: the runner builds for
+  # its own architecture.
+  app-macos:
+    name: Bundle macOS app
+    needs: check-tag
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - uses: Swatinem/rust-cache@v2
+
+      - uses: taiki-e/install-action@just
+
+      - name: Bundle
+        env:
+          APP_COMMIT: ${{ github.sha }}
+        run: just bundle-macos
+
+      # `ditto` keeps what a plain zip loses (resource forks, the code signature's symlinks).
+      - name: Package
+        run: |
+          name="SealPDF-${GITHUB_REF_NAME}-macos-aarch64"
+          mkdir -p dist
+          ditto -c -k --sequesterRsrc --keepParent target/macos/SealPDF.app "dist/${name}.zip"
+          cd dist
+          shasum -a 256 "${name}.zip" > "${name}.zip.sha256"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: sealpdf-macos-app
+          path: dist/*
+          if-no-files-found: error
+
   release:
     name: Publish release
-    needs: build
+    needs: [build, app-macos]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/download-artifact@v4

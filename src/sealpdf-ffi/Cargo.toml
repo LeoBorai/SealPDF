@@ -1,0 +1,19 @@
+[package]
+name = "sealpdf-ffi"
+version.workspace = true
+edition.workspace = true
+publish.workspace = true
+
+[lib]
+crate-type = ["staticlib", "rlib"]
+
+[dependencies]
+tempfile.workspace = true
+
+sealpdf-core.workspace = true
+sealpdf-keystore.workspace = true
+sealpdf-pades.workspace = true
+
+[dev-dependencies]
+lopdf.workspace = true
+sealpdf-pdf.workspace = true
