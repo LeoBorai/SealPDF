@@ -24,6 +24,15 @@ dev-macos:
     cargo build -p sealpdf-ffi
     swift run --package-path src/macos -Xlinker -L{{justfile_directory()}}/target/debug
 
+# Release build of the macOS app: the Rust library, then the Swift executable linked to it
+build-macos:
+    cargo build --release -p sealpdf-ffi
+    swift build -c release --package-path src/macos -Xlinker -L{{justfile_directory()}}/target/release
+
+# Bundle the app into a standalone target/macos/SealPDF.app (macOS only, see src/macos/scripts/bundle.sh)
+bundle-macos: build-macos
+    src/macos/scripts/bundle.sh
+
 # Unit and integration tests
 test:
     cargo nextest run --workspace --no-tests=pass

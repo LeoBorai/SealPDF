@@ -88,3 +88,37 @@ jobs:
 
       - name: Tests
         run: cargo nextest run --workspace --profile ci --no-tests=pass
+
+  # The SwiftUI app: the Rust library, the Swift build, and the .app bundle, through the same
+  # `just` recipe a developer runs. The window itself cannot be opened on a runner.
+  macos-app:
+    if: github.event_name != 'schedule'
+    name: macOS app
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - uses: Swatinem/rust-cache@v2
+
+      - uses: taiki-e/install-action@just
+
+      - name: Bundle
+        env:
+          APP_COMMIT: ${{ github.sha }}
+        run: just bundle-macos
+
+      - name: Check the bundle
+        run: |
+          app="target/macos/SealPDF.app"
+          plutil -lint "$app/Contents/Info.plist"
+          test -x "$app/Contents/MacOS/SealPDF"
+          codesign --verify --deep --strict "$app"
+          [[ "$(/usr/libexec/PlistBuddy -c 'Print :SealPDFCommit' "$app/Contents/Info.plist")" == "$GITHUB_SHA" ]]
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: SealPDF-macos-app
+          path: target/macos/SealPDF.app
+          if-no-files-found: error

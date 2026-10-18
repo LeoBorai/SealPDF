@@ -16,10 +16,22 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 @main
 struct SealPDFApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) private var delegate
+    @Environment(\.openWindow) private var openWindow
 
     var body: some Scene {
-        WindowGroup("SealPDF") {
+        WindowGroup(AppInfo.name) {
             ContentView()
         }
+        .commands {
+            CommandGroup(replacing: .appInfo) {
+                Button("About \(AppInfo.name)") { openWindow(id: "about") }
+            }
+        }
+
+        Window("About \(AppInfo.name)", id: "about") {
+            AboutView()
+        }
+        .windowStyle(.hiddenTitleBar)
+        .windowResizability(.contentSize)
     }
 }

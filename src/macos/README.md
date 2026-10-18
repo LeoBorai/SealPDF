@@ -18,8 +18,24 @@ On the left, the controls; on the right, a preview of the PDF (PDFKit), which yo
 
 For the Keychain, macOS asks to use the key with its own prompt (login password or Touch ID). Signing and unlocking run off the main thread, so the window stays responsive.
 
+## About window
+
+**SealPDF > About SealPDF** shows the app icon, the name, "PDF Digital Signature Tool", the version, the commit it was built from (a link to that commit) and a **GitHub** button for the repository. The version and commit are written into `Info.plist` by `scripts/bundle.sh`; from `just dev-macos` there is no bundle, so the version reads `dev` and the commit row is hidden.
+
+## The app bundle
+
+```sh
+just bundle-macos      # builds, then writes target/macos/SealPDF.app
+```
+
+`scripts/bundle.sh` copies the release executable into `SealPDF.app`, fills `Info.plist.template` (the version from the workspace `Cargo.toml`, the commit from `APP_COMMIT` or `HEAD`) and signs it ad hoc, so macOS lets it launch on Apple Silicon. There is no Developer ID: on first launch right-click > Open. Put an `icon.icns` in `Resources/` to give the app its icon; without one it gets the generic icon.
+
+CI builds and checks the bundle on every push (`macos-app` in `ci.yml`). A release tag adds `SealPDF-<tag>-macos-aarch64.zip` (and its SHA-256) to the release, built from the release commit. Apple Silicon only.
+
 ## Layout
 
 - `Sources/CSealPDF` is a Clang module over `src/sealpdf-ffi/include/sealpdf.h`, the only copy of the header.
 - `Sources/SealPDF/Certificates.swift` wraps the C calls and frees what Rust allocates.
+- `AppInfo.swift` and `AboutView.swift` are the About window.
+- `scripts/` holds the macOS scripts: `bundle.sh` makes the `.app` (from `Info.plist.template`), and `icons.sh` turns a PNG into an `.icns`.
 - `SignModel.swift` holds the state and the open and save panels; `ContentView.swift` is the view and `PDFPreview.swift` the PDFKit preview.
