@@ -388,6 +388,7 @@ dependencies = [
  "cms 0.3.0-rc.0",
  "der 0.8.2",
  "lopdf",
+ "p12-keystore",
  "sha2 0.11.1",
  "tempfile",
  "x509-cert 0.3.0",

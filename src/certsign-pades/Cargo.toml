@@ -17,6 +17,7 @@ certsign-pdf.workspace = true
 
 [dev-dependencies]
 cms.workspace = true
+p12-keystore.workspace = true
 certsign-cms.workspace = true
 sha2.workspace = true
 tempfile.workspace = true

@@ -6,6 +6,19 @@ use std::{
     process::Command,
 };
 
+/// A file name for `name` that is safe to hand to OpenSSL on every system.
+fn stem(name: &str) -> String {
+    name.chars()
+        .map(|c| {
+            if c.is_ascii_alphanumeric() || c == '-' {
+                c
+            } else {
+                '_'
+            }
+        })
+        .collect()
+}
+
 pub fn openssl(dir: &Path, args: &[&str]) -> bool {
     Command::new("openssl")
         .args(args)
@@ -140,13 +153,13 @@ impl Pki {
     pub fn leaf(&self, name: &str, curve: Option<&str>) -> Leaf {
         let d = self.path();
         let (key, csr, pem) = (
-            format!("{name}.key"),
-            format!("{name}.csr"),
-            format!("{name}.pem"),
+            format!("{}.key", stem(name)),
+            format!("{}.csr", stem(name)),
+            format!("{}.pem", stem(name)),
         );
         // The subject comes from a config file: on Windows a non-ASCII command-line argument
         // does not reach OpenSSL as UTF-8.
-        let conf = format!("{name}.req.cnf");
+        let conf = format!("{}.req.cnf", stem(name));
         std::fs::write(
             d.join(&conf),
             format!(
@@ -193,8 +206,15 @@ impl Pki {
     /// Exports `name`'s key and chain as `<name>.p12`.
     pub fn p12(&self, leaf: &Leaf, password: &str, extra: &[&str]) -> PathBuf {
         let d = self.path();
-        let out = format!("{}.p12", leaf.name);
-        let (key, pem) = (format!("{}.key", leaf.name), format!("{}.pem", leaf.name));
+        let out = format!("{}.p12", stem(&leaf.name));
+        if !leaf.name.is_ascii() {
+            assert!(extra.is_empty());
+            return self.p12_in_rust(leaf, password, &out);
+        }
+        let (key, pem) = (
+            format!("{}.key", stem(&leaf.name)),
+            format!("{}.pem", stem(&leaf.name)),
+        );
         let pass = format!("pass:{password}");
         let mut args = vec![
             "pkcs12",
@@ -217,10 +237,26 @@ impl Pki {
         d.join(out)
     }
 
+    /// The same file as `p12`, for a name OpenSSL cannot be given on Windows, where command-line
+    /// arguments go through the ANSI code page: the friendly name is set here instead.
+    fn p12_in_rust(&self, leaf: &Leaf, password: &str, out: &str) -> PathBuf {
+        use p12_keystore::{Certificate, KeyStore, KeyStoreEntry, PrivateKeyChain};
+        let chain = vec![
+            Certificate::from_der(&leaf.cert_der).unwrap(),
+            Certificate::from_der(&self.intermediate_der()).unwrap(),
+        ];
+        let key = PrivateKeyChain::new(self.pkcs8(leaf), leaf.name.as_bytes(), chain);
+        let mut p12 = KeyStore::new();
+        p12.add_entry(&leaf.name, KeyStoreEntry::PrivateKeyChain(key));
+        let path = self.path().join(out);
+        std::fs::write(&path, p12.writer(password).write().unwrap()).unwrap();
+        path
+    }
+
     /// The key as unencrypted PKCS#8 DER.
     pub fn pkcs8(&self, leaf: &Leaf) -> Vec<u8> {
         let d = self.path();
-        let out = format!("{}.pk8", leaf.name);
+        let out = format!("{}.pk8", stem(&leaf.name));
         assert!(openssl(
             d,
             &[
@@ -228,7 +264,7 @@ impl Pki {
                 "-topk8",
                 "-nocrypt",
                 "-in",
-                &format!("{}.key", leaf.name),
+                &format!("{}.key", stem(&leaf.name)),
                 "-outform",
                 "DER",
                 "-out",
@@ -247,7 +283,7 @@ impl Pki {
         let (data_file, sig_file, pubkey) = (
             format!("vdata{n}.bin"),
             format!("vsig{n}.bin"),
-            format!("{}.{n}.pub", leaf.name),
+            format!("{}.{n}.pub", stem(&leaf.name)),
         );
         std::fs::write(d.join(&data_file), data).unwrap();
         std::fs::write(d.join(&sig_file), signature).unwrap();
@@ -256,7 +292,7 @@ impl Pki {
             &[
                 "x509",
                 "-in",
-                &format!("{}.pem", leaf.name),
+                &format!("{}.pem", stem(&leaf.name)),
                 "-pubkey",
                 "-noout",
                 "-out",
