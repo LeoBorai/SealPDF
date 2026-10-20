@@ -51,7 +51,7 @@ jobs:
 
       # pyHanko is the reference validator and the third-party signer in the interoperability
       # tests. Where it is installed those tests are required to run, not skipped.
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v7
         if: runner.os != 'Windows'
         with:
           python-version: "3.12"
