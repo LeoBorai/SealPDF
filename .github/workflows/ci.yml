@@ -117,7 +117,7 @@ jobs:
           codesign --verify --deep --strict "$app"
           [[ "$(/usr/libexec/PlistBuddy -c 'Print :SealPDFCommit' "$app/Contents/Info.plist")" == "$GITHUB_SHA" ]]
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: SealPDF-macos-app
           path: target/macos/SealPDF.app

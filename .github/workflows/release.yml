@@ -86,7 +86,7 @@ jobs:
           fi
           rm -rf "$name"
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: sealpdf-${{ matrix.target }}
           path: dist/*
@@ -121,7 +121,7 @@ jobs:
           cd dist
           shasum -a 256 "${name}.zip" > "${name}.zip.sha256"
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: sealpdf-macos-app
           path: dist/*
