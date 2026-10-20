@@ -23,7 +23,7 @@ jobs:
     name: Check tag matches Cargo.toml version
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Compare
         run: |
@@ -48,7 +48,7 @@ jobs:
           - { target: aarch64-apple-darwin, os: macos-14, ext: tar.gz }
           - { target: x86_64-pc-windows-msvc, os: windows-latest, ext: zip }
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - uses: dtolnay/rust-toolchain@stable
         with:
@@ -99,7 +99,7 @@ jobs:
     needs: check-tag
     runs-on: macos-14
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - uses: dtolnay/rust-toolchain@stable
 
