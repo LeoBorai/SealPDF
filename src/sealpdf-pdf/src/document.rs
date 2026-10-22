@@ -125,6 +125,11 @@ impl PdfDocument {
         f
     }
 
+    /// The catalog has a `/DSS` dictionary (long-term validation data).
+    pub fn has_dss(&self) -> bool {
+        fields::has_dss(&self.doc)
+    }
+
     /// DocMDP level (1 to 3) when the document is certified.
     pub fn certification_level(&self) -> Option<u8> {
         fields::certification_level(&self.doc)

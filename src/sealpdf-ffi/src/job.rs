@@ -3,6 +3,8 @@
 use sealpdf_core::SystemClock;
 use sealpdf_keystore::{CertFilters, Entry, KeyStore, NoPrompt};
 use sealpdf_pades::{SigningParams, sign_pdf};
+use sealpdf_pdf::PdfDocument;
+use sealpdf_validate::{inspect, signature_count as count_signatures};
 use std::{
     io::Write,
     path::{Path, PathBuf},
@@ -40,6 +42,23 @@ pub fn sign_file(
     )
     .map_err(|e| e.to_string())?;
     write_atomically(output, &signed)
+}
+
+/// How many signatures the PDF at `path` carries, document timestamps excluded. No signature is
+/// decoded, so this is cheap enough to run whenever a document is opened.
+pub fn signature_count(path: &Path) -> Result<usize, String> {
+    Ok(count_signatures(&open(path)?))
+}
+
+/// The JSON report `sealpdf verify --json` prints for the PDF at `path`.
+pub fn inspect_json(path: &Path) -> Result<String, String> {
+    let report = inspect(&open(path)?, &SystemClock).map_err(|e| e.to_string())?;
+    Ok(report.to_json())
+}
+
+fn open(path: &Path) -> Result<PdfDocument, String> {
+    let bytes = std::fs::read(path).map_err(|e| format!("cannot read {}: {e}", path.display()))?;
+    PdfDocument::open(bytes, None).map_err(|e| e.to_string())
 }
 
 /// Whether two paths name one file, even through links or relative segments.

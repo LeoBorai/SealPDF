@@ -1,3 +1,4 @@
+mod inspect;
 mod list_certs;
 mod sign;
 
@@ -13,6 +14,8 @@ pub fn run(command: Command) -> Result<(), Failure> {
     match command {
         Command::ListCerts(args) => list_certs::run(&args),
         Command::Sign(args) => sign::run(&args),
+        Command::Ls(args) => inspect::ls(&args),
+        Command::Verify(args) => inspect::verify(&args),
     }
 }
 

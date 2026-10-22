@@ -55,8 +55,7 @@ impl std::fmt::Display for ErrorCode {
 }
 
 /// Validation failure kinds, named after the identifiers used in verification reports.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize)]
-#[serde(rename_all = "SCREAMING_SNAKE_CASE")]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum ValidityError {
     NoData,
     CorruptedSign,
@@ -76,6 +75,73 @@ pub enum ValidityError {
     ModifiedDocument,
     OverlappingSignature,
     SuspectedSignature,
+    /// The signature carries timestamp or long-term validation data that is not verified.
+    SignProfileNotChecked,
+    /// A signature was added after a certification that allows no changes.
+    CertifiedSignRevision,
+}
+
+impl Serialize for ValidityError {
+    /// Serializes as [`ValidityError::id`], so JSON output matches the printed identifiers.
+    fn serialize<S: serde::Serializer>(
+        &self,
+        serializer: S,
+    ) -> std::result::Result<S::Ok, S::Error> {
+        serializer.serialize_str(self.id())
+    }
+}
+
+/// The outcome class of one item of a document verdict list.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize)]
+#[serde(rename_all = "SCREAMING_SNAKE_CASE")]
+pub enum VerdictKind {
+    Ok,
+    Ko,
+    Unknown,
+}
+
+/// One item of a document verdict list: `OK`, or `KO`/`UNKNOWN` with the reason.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize)]
+pub struct Verdict {
+    pub verdict: VerdictKind,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub error: Option<ValidityError>,
+}
+
+impl Verdict {
+    pub const OK: Self = Self {
+        verdict: VerdictKind::Ok,
+        error: None,
+    };
+
+    pub const fn ko(error: ValidityError) -> Self {
+        Self {
+            verdict: VerdictKind::Ko,
+            error: Some(error),
+        }
+    }
+
+    pub const fn unknown(error: ValidityError) -> Self {
+        Self {
+            verdict: VerdictKind::Unknown,
+            error: Some(error),
+        }
+    }
+}
+
+impl std::fmt::Display for Verdict {
+    /// `OK`, or `KO NO_SIGN`: the verdict and the error id.
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let kind = match self.verdict {
+            VerdictKind::Ok => "OK",
+            VerdictKind::Ko => "KO",
+            VerdictKind::Unknown => "UNKNOWN",
+        };
+        match self.error {
+            Some(error) => write!(f, "{kind} {}", error.id()),
+            None => f.write_str(kind),
+        }
+    }
 }
 
 impl ValidityError {
@@ -100,6 +166,8 @@ impl ValidityError {
             Self::ModifiedDocument => "MODIFIED_DOCUMENT",
             Self::OverlappingSignature => "OVERLAPPING_SIGNATURE",
             Self::SuspectedSignature => "SUSPECTED_SIGNATURE",
+            Self::SignProfileNotChecked => "SIGN_PROFILE_NOT_CHECKED",
+            Self::CertifiedSignRevision => "CERTIFIED_SIGN_REVISION",
         }
     }
 }
@@ -222,6 +290,41 @@ mod tests {
         assert_eq!(
             ValidityError::PdfUnknownValidity.id(),
             "PDF_UNKOWN_VALIDITY"
+        );
+    }
+
+    #[test]
+    fn new_validity_ids_are_stable() {
+        assert_eq!(
+            ValidityError::SignProfileNotChecked.id(),
+            "SIGN_PROFILE_NOT_CHECKED"
+        );
+        assert_eq!(
+            ValidityError::CertifiedSignRevision.id(),
+            "CERTIFIED_SIGN_REVISION"
+        );
+    }
+
+    #[test]
+    fn verdicts_serialize_with_stable_ids() {
+        let json = |v: &Verdict| serde_json::to_string(v).unwrap();
+        assert_eq!(json(&Verdict::OK), r#"{"verdict":"OK"}"#);
+        assert_eq!(
+            json(&Verdict::ko(ValidityError::NoSign)),
+            r#"{"verdict":"KO","error":"NO_SIGN"}"#
+        );
+        assert_eq!(
+            json(&Verdict::unknown(ValidityError::PdfUnknownValidity)),
+            r#"{"verdict":"UNKNOWN","error":"PDF_UNKOWN_VALIDITY"}"#
+        );
+    }
+
+    #[test]
+    fn verdicts_display_as_kind_and_id() {
+        assert_eq!(Verdict::OK.to_string(), "OK");
+        assert_eq!(
+            Verdict::unknown(ValidityError::ModifiedDocument).to_string(),
+            "UNKNOWN MODIFIED_DOCUMENT"
         );
     }
 

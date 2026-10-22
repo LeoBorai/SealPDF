@@ -20,6 +20,14 @@ pub struct SignatureValue {
     pub is_doc_timestamp: bool,
     /// DocMDP `/P` when this is a certification signature.
     pub docmdp: Option<u8>,
+    /// The raw bytes of `/Contents`, including the zero padding after the CMS.
+    pub contents: Option<Vec<u8>>,
+    /// `/M`, the signing time as written in the file (`D:YYYYMMDDHHmmSS...`).
+    pub signing_time: Option<String>,
+    /// `/Name`, the signer's name as the signing application recorded it.
+    pub name: Option<String>,
+    pub reason: Option<String>,
+    pub location: Option<String>,
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -219,6 +227,15 @@ fn page_of(
     })
 }
 
+fn entry_text(doc: &Document, dict: &Dictionary, key: &[u8]) -> Option<String> {
+    dict.get(key).ok().and_then(|o| text(doc, o))
+}
+
+/// The catalog has a `/DSS` dictionary: validation data for long-term validation.
+pub(crate) fn has_dss(doc: &Document) -> bool {
+    doc.catalog().is_ok_and(|c| c.has(b"DSS"))
+}
+
 pub(crate) fn signature_value(doc: &Document, v: &Object) -> Option<SignatureValue> {
     let (id, obj) = doc.dereference(v).ok()?;
     let dict = obj.as_dict().ok()?;
@@ -244,6 +261,16 @@ pub(crate) fn signature_value(doc: &Document, v: &Object) -> Option<SignatureVal
             .map(|a| a.iter().filter_map(|n| n.as_i64().ok()).collect()),
         is_doc_timestamp,
         docmdp: docmdp(doc, dict),
+        contents: dict
+            .get(b"Contents")
+            .ok()
+            .and_then(|o| doc.dereference(o).ok())
+            .and_then(|(_, o)| o.as_str().ok())
+            .map(<[u8]>::to_vec),
+        signing_time: entry_text(doc, dict, b"M"),
+        name: entry_text(doc, dict, b"Name"),
+        reason: entry_text(doc, dict, b"Reason"),
+        location: entry_text(doc, dict, b"Location"),
     })
 }
 

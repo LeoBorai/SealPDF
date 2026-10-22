@@ -21,12 +21,14 @@ x509-cert.workspace = true
 sealpdf-core.workspace = true
 sealpdf-keystore.workspace = true
 sealpdf-pades.workspace = true
+sealpdf-pdf.workspace = true
+sealpdf-validate.workspace = true
 
 [dev-dependencies]
 assert_cmd.workspace = true
 sealpdf-cms.workspace = true
-sealpdf-pdf.workspace = true
 lopdf.workspace = true
 p12-keystore.workspace = true
 predicates.workspace = true
+serde_json.workspace = true
 tempfile.workspace = true

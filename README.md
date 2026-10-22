@@ -34,6 +34,13 @@ With one certificate it is used; with several, you pick one from a numbered list
 sealpdf sign contract.pdf --keystore pkcs12:me.p12
 ```
 
+To see who signed a PDF, and whether the signatures are intact:
+
+```sh
+sealpdf ls contract_signed.pdf       # lists the signatures; always exits 0
+sealpdf verify contract_signed.pdf   # exits 0 only if the PDF is signed and nothing is wrong or unchecked
+```
+
 <details>
   <summary>More options</summary>
 
@@ -42,6 +49,8 @@ sealpdf list-certs                                  # the certificates available
 sealpdf sign contract.pdf --alias "Ada Lovelace"    # choose the certificate by its alias
 sealpdf sign contract.pdf --output signed/contract.pdf
 sealpdf sign contract.pdf --force                   # replace an existing output file
+sealpdf ls contract_signed.pdf --json               # the signatures as JSON, for scripts
+sealpdf verify contract_signed.pdf --json           # the signatures and the verdict as JSON
 P12_PASSWORD='...' sealpdf sign contract.pdf --keystore pkcs12:me.p12 --password-env P12_PASSWORD
 ```
 
@@ -55,6 +64,7 @@ Signing a PDF that is already signed adds one more signature and keeps the earli
 | 2 | The command was used wrongly |
 | 3 | The PDF was refused (encrypted, certified, unreadable) |
 | 4 | A certificate, password or key access problem |
+| 5 | `verify` only: no signature, a broken one, or something that could not be checked |
 | 6 | Anything else |
 
 The full behaviour of each command, with diagrams, is in [docs/cli](docs/cli/README.md).
@@ -96,7 +106,7 @@ To check a signature, you can use the [validation service](https://valide.redsar
 
 ## Not included yet
 
-Visible signatures and text, timestamps, signature policies, certification levels, checking signatures (`verify`), signing encrypted PDFs, and smart card (PKCS#11) use from the command line. The plan for them is kept in `openspec/changes/rust-pades-signer-v1/deferred/`.
+Visible signatures and text, timestamps, signature policies, certification levels, checking certificate trust and revocation, signing encrypted PDFs, and smart card (PKCS#11) use from the command line. The plan for them is kept in `openspec/changes/rust-pades-signer-v1/deferred/`.
 
 ## Development
 
