@@ -21,6 +21,8 @@ final class SignModel: ObservableObject {
     @Published var status = ""
     @Published var failure: String?
     @Published var isWorking = false
+    /// The open PDF already carries a signature. Found by counting, never by checking.
+    @Published private(set) var previouslySigned = false
 
     private var keychain: Certificates?
     private var fromFile: Certificates?
@@ -52,6 +54,13 @@ final class SignModel: ObservableObject {
     func setInput(_ url: URL) {
         input = url
         status = ""
+        previouslySigned = false
+        Task { [self] in
+            let count = await Task.detached { try? PDFInspector.signatureCount(of: url) }.value
+            // Another PDF was opened meanwhile: the answer is not about the one on show.
+            guard input == url else { return }
+            previouslySigned = (count ?? 0) > 0
+        }
     }
 
     func chooseFile() {

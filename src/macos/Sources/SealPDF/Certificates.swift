@@ -7,7 +7,7 @@ struct SealError: LocalizedError {
 }
 
 /// Reads and releases a string the Rust library allocated.
-private func take(_ pointer: UnsafeMutablePointer<CChar>?) -> String? {
+func take(_ pointer: UnsafeMutablePointer<CChar>?) -> String? {
     guard let pointer else { return nil }
     defer { sealpdf_string_free(pointer) }
     return String(cString: pointer)

@@ -19,6 +19,20 @@ pub enum Command {
     ListCerts(KeystoreArgs),
     /// Sign a PDF with an invisible signature.
     Sign(SignArgs),
+    /// List the signatures in a PDF and whether each one is intact.
+    Ls(InspectArgs),
+    /// Check the signatures in a PDF. Exits 5 unless the PDF is signed and nothing is wrong or unchecked.
+    Verify(InspectArgs),
+}
+
+#[derive(Debug, Args)]
+pub struct InspectArgs {
+    /// The PDF to look at.
+    pub input: PathBuf,
+
+    /// Print the report as JSON on stdout.
+    #[arg(long)]
+    pub json: bool,
 }
 
 #[derive(Debug, Args)]

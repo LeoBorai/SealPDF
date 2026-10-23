@@ -1,118 +1,51 @@
 import SwiftUI
-import UniformTypeIdentifiers
 
+/// The window: a Sign tab and a Verify tab, each with its own PDF and preview.
 struct ContentView: View {
-    @StateObject private var model = SignModel()
+    enum Tab: Hashable {
+        case sign
+        case verify
+    }
+
+    /// Which tab is showing. An object, not `@State`: that is a macro in the newest SDKs, and
+    /// the command line tools alone cannot expand it.
+    @MainActor
+    final class Selection: ObservableObject {
+        @Published var tab: Tab = .sign
+    }
+
+    @StateObject private var sign = SignModel()
+    @StateObject private var verify = VerifyModel()
+    @StateObject private var selection = Selection()
 
     var body: some View {
-        HStack(spacing: 0) {
-            controls
-                .frame(width: 320)
-                .padding(20)
+        // A segmented picker, not `TabView`: on macOS that draws a box whose border runs
+        // through the tab control.
+        VStack(spacing: 0) {
+            Picker("", selection: $selection.tab) {
+                Text("Sign").tag(Tab.sign)
+                Text("Verify").tag(Tab.verify)
+            }
+            .pickerStyle(.segmented)
+            .labelsHidden()
+            .frame(width: 200)
+            .padding(.vertical, 10)
+
             Divider()
-            preview
-        }
-        .frame(minWidth: 780, minHeight: 520)
-        .alert(
-            "Something went wrong",
-            isPresented: Binding(
-                get: { model.failure != nil },
-                set: { if !$0 { model.failure = nil } }
-            )
-        ) {
-            Button("OK", role: .cancel) {}
-        } message: {
-            Text(model.failure ?? "")
-        }
-    }
 
-    private var controls: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            GroupBox("Document") {
-                VStack(alignment: .leading, spacing: 8) {
-                    Button("Open PDF…") { model.chooseFile() }
-                    Text(model.input?.lastPathComponent ?? "No PDF chosen")
-                        .foregroundStyle(.secondary)
-                        .lineLimit(1)
-                        .truncationMode(.middle)
-                }
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(4)
-            }
-
-            GroupBox("Certificate") {
-                VStack(alignment: .leading, spacing: 10) {
-                    Picker("Source", selection: $model.source) {
-                        Text("Keychain").tag(CertificateSource.keychain)
-                        Text("File").tag(CertificateSource.file)
-                    }
-                    .pickerStyle(.segmented)
-                    .labelsHidden()
-
-                    if model.source == .file {
-                        fileControls
-                    }
-
-                    Picker("Sign with", selection: $model.selected) {
-                        ForEach(model.aliases, id: \.self) { Text($0).tag($0) }
-                    }
-                    .disabled(model.aliases.isEmpty)
-                }
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(4)
-            }
-
-            Button("Sign…") { Task { await model.sign() } }
-                .controlSize(.large)
-                .keyboardShortcut(.defaultAction)
-                .disabled(!model.canSign)
-
-            Text(model.status)
-                .foregroundStyle(.secondary)
-                .textSelection(.enabled)
-                .fixedSize(horizontal: false, vertical: true)
-
-            Spacer()
-        }
-    }
-
-    private var fileControls: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Button("Choose .p12 / .pfx…") { model.chooseCertificateFile() }
-            Text(model.certificateFile?.lastPathComponent ?? "No file chosen")
-                .foregroundStyle(.secondary)
-                .lineLimit(1)
-                .truncationMode(.middle)
-            if model.certificateFile != nil {
-                SecureField("Password", text: $model.password)
-                    .onSubmit { Task { await model.unlockCertificateFile() } }
-                Button("Unlock") { Task { await model.unlockCertificateFile() } }
-                    .disabled(!model.canUnlock)
+            switch selection.tab {
+            case .sign:
+                SignView(model: sign, openInVerify: openSignedPDFInVerify)
+            case .verify:
+                VerifyView(model: verify)
             }
         }
     }
 
-    private var preview: some View {
-        ZStack {
-            PDFPreview(url: model.input)
-            if model.input == nil {
-                VStack(spacing: 8) {
-                    Image(systemName: "doc.richtext")
-                        .font(.system(size: 44))
-                    Text("Open a PDF, or drop one here")
-                }
-                .foregroundStyle(.secondary)
-                .allowsHitTesting(false)
-            }
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(Color(nsColor: .underPageBackgroundColor))
-        .dropDestination(for: URL.self) { urls, _ in
-            guard let pdf = urls.first(where: { $0.pathExtension.lowercased() == "pdf" }) else {
-                return false
-            }
-            model.setInput(pdf)
-            return true
-        }
+    /// The notice on the Sign tab: hand its PDF to Verify, which checks it now.
+    private func openSignedPDFInVerify() {
+        guard let url = sign.input else { return }
+        verify.open(url)
+        selection.tab = .verify
     }
 }

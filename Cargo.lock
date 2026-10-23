@@ -1779,9 +1779,9 @@ dependencies = [
 
 [[package]]
 name = "rustls-webpki"
-version = "0.103.15"
+version = "0.103.16"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f3c3cf1d8b1e7d4927e2d154c3fcb02979afb9939629c62cd9048d4f07b60ac2"
+checksum = "4443b1b6d39d7c663139942cc4558262562d2c84123bb6282ef177009ca8b281"
 dependencies = [
  "ring",
  "rustls-pki-types",
@@ -1837,6 +1837,8 @@ dependencies = [
  "sealpdf-keystore",
  "sealpdf-pades",
  "sealpdf-pdf",
+ "sealpdf-validate",
+ "serde_json",
  "tempfile",
  "tracing",
  "tracing-subscriber",
@@ -1869,6 +1871,7 @@ version = "0.1.4"
 dependencies = [
  "chrono",
  "serde",
+ "serde_json",
  "thiserror",
  "toml",
 ]
@@ -1882,6 +1885,8 @@ dependencies = [
  "sealpdf-keystore",
  "sealpdf-pades",
  "sealpdf-pdf",
+ "sealpdf-validate",
+ "serde_json",
  "tempfile",
 ]
 
@@ -1959,6 +1964,27 @@ dependencies = [
 ]
 
 [[package]]
+name = "sealpdf-validate"
+version = "0.1.4"
+dependencies = [
+ "chrono",
+ "cms 0.3.0-rc.0",
+ "const-oid 0.10.2",
+ "der 0.8.2",
+ "lopdf",
+ "p12-keystore",
+ "sealpdf-cms",
+ "sealpdf-core",
+ "sealpdf-keystore",
+ "sealpdf-pades",
+ "sealpdf-pdf",
+ "serde",
+ "serde_json",
+ "tempfile",
+ "x509-cert 0.3.0",
+]
+
+[[package]]
 name = "sec1"
 version = "0.8.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2032,6 +2058,19 @@ dependencies = [
  "proc-macro2",
  "quote",
  "syn 3.0.9",
+]
+
+[[package]]
+name = "serde_json"
+version = "1.0.154"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e7e9cc8b1b85264074fbcc02a88680c4096b1e47df8f739dceb03bf482f04bd6"
+dependencies = [
+ "itoa",
+ "memchr",
+ "serde",
+ "serde_core",
+ "zmij",
 ]
 
 [[package]]
@@ -2593,9 +2632,9 @@ dependencies = [
 
 [[package]]
 name = "webpki-roots"
-version = "1.0.9"
+version = "1.0.10"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7dcd9d09a39985f5344844e66b0c530a33843579125f23e21e9f0f220850f22a"
+checksum = "1c1c8e20c8a38fc7d65abfe74eb7280e4aa667e8eec8bc84996d2874810748d9"
 dependencies = [
  "rustls-pki-types",
 ]
@@ -2850,3 +2889,9 @@ name = "zlib-rs"
 version = "0.6.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b268e58e7c693d7c271f93ffc4ba3b380412554231c85bf61ca7af91042a4112"
+
+[[package]]
+name = "zmij"
+version = "1.0.23"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "29666d0abbfad1e3dc4dcf6144730dd3a3ab225bbbdac83319345b1b44ccfc1b"

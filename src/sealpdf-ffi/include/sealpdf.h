@@ -32,6 +32,16 @@ char *sealpdf_certs_alias(const SealpdfCerts *certs, unsigned long index);
 int sealpdf_sign(const SealpdfCerts *certs, const char *input, const char *output,
                  const char *alias, char **error);
 
+/* How many signatures the PDF at `path` carries, document timestamps not counted. Decodes no
+ * signature, so it is cheap. Returns -1 and, when `error` is not NULL, a message if the file
+ * cannot be read as a PDF. */
+long sealpdf_signature_count(const char *path, char **error);
+
+/* Lists and checks the signatures of the PDF at `path`. Returns the report as UTF-8 JSON, the
+ * same text `sealpdf verify --json` prints, or NULL and, when `error` is not NULL, a message if
+ * the file cannot be read, is not a PDF, or is encrypted. Call it off the main thread. */
+char *sealpdf_inspect(const char *path, char **error);
+
 void sealpdf_certs_free(SealpdfCerts *certs);
 void sealpdf_string_free(char *string);
 

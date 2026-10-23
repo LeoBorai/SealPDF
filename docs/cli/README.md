@@ -1,11 +1,13 @@
 # SealPDF CLI
 
-`sealpdf` (SealPDF) signs PDF files with a digital certificate you already have. The signature is invisible and follows PAdES (`adbe.pkcs7.detached`). The crate is `src/cli`; the binary is `sealpdf`.
+`sealpdf` (SealPDF) signs PDF files with a digital certificate you already have, and lists and checks the signatures in a PDF. The signature is invisible and follows PAdES (`adbe.pkcs7.detached`). The crate is `src/cli`; the binary is `sealpdf`.
 
 | Command | What it does | Page |
 | --- | --- | --- |
 | `list-certs` | Shows the signing certificates a key store offers. | [list-certs.md](list-certs.md) |
 | `sign` | Signs a PDF and writes a new file. | [sign.md](sign.md) |
+| `ls` | Lists the signatures in a PDF and whether each is intact. | [ls.md](ls.md) |
+| `verify` | Checks the signatures in a PDF; exits 5 unless the PDF is signed and nothing is wrong or unchecked. | [verify.md](verify.md) |
 
 Global option: `--verbose` prints debug lines on stderr. It never prints passwords or keys.
 
@@ -16,6 +18,8 @@ flowchart TD
     main["main.rs<br/>parse args, set up logging"] --> run["commands::run"]
     run --> lc["list_certs::run"]
     run --> sg["sign::run"]
+    run --> ins["inspect::ls / inspect::verify"]
+    ins --> val["sealpdf_validate::inspect<br/>no key store, no password"]
     lc --> open["open_keystore<br/>--keystore parsed by KeystoreSpec"]
     sg --> open
     open --> kc["KeychainKeyStore<br/>macOS"]
@@ -32,12 +36,13 @@ flowchart TD
 | `commands/mod.rs` | Dispatch, `open_keystore`, and the default certificate filter. |
 | `commands/list_certs.rs` | The table printed by `list-certs`. |
 | `commands/sign.rs` | Output checks, certificate choice, signing, atomic write. |
+| `commands/inspect.rs` | `ls` and `verify`: the signature table, the verdict lines, `--json`. |
 | `prompt.rs` | `TerminalPrompt`: where passwords come from. |
 | `exit.rs` | The only place that maps errors to exit codes. |
 
 ## Key stores
 
-`--keystore TYPE[:LOCATION]` is shared by both commands.
+`--keystore TYPE[:LOCATION]` is shared by `list-certs` and `sign`. `ls` and `verify` need no key store.
 
 | Value | Meaning |
 | --- | --- |
@@ -69,8 +74,9 @@ flowchart TD
 | --- | --- | --- |
 | 0 | `OK` | Success. |
 | 2 | `USAGE` | Wrong use: bad `--keystore`, output exists without `--force`, output is the input, several certificates and no terminal. Also what `clap` exits with. |
-| 3 | `REFUSED` | The PDF was turned away before signing: encrypted, certified, no pages, or unreadable. |
+| 3 | `REFUSED` | The PDF was turned away: encrypted, certified (`sign`), no pages, or unreadable. Also what `ls` and `verify` exit with for a file that is not a readable PDF. |
 | 4 | `KEYSTORE` | Key store, password or key access problem, including an unknown alias. |
+| 5 | `VERIFY_FAILED` | Only `verify`: the PDF has no signature, a broken one, or something that could not be checked. |
 | 6 | `OTHER` | Anything else (I/O, signature too large, unsupported algorithm). |
 
 Errors print as `sealpdf: <message>` on stderr.

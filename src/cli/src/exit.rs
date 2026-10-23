@@ -8,6 +8,8 @@ pub const USAGE: i32 = 2;
 pub const REFUSED: i32 = 3;
 /// A key store, password or key access problem.
 pub const KEYSTORE: i32 = 4;
+/// `sealpdf verify` found no signature, or one that is broken or could not be fully checked.
+pub const VERIFY_FAILED: i32 = 5;
 /// Anything else.
 pub const OTHER: i32 = 6;
 
@@ -22,6 +24,13 @@ impl Failure {
     pub fn usage(message: impl Into<String>) -> Self {
         Self {
             code: USAGE,
+            message: message.into(),
+        }
+    }
+
+    pub fn verify_failed(message: impl Into<String>) -> Self {
+        Self {
+            code: VERIFY_FAILED,
             message: message.into(),
         }
     }

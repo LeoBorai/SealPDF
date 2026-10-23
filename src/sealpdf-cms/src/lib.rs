@@ -7,4 +7,4 @@ mod pades;
 mod verify;
 
 pub use pades::{PadesCms, PadesCmsOptions, SignedAttrs};
-pub use verify::{VerifiedSignature, VerifyError, verify_detached};
+pub use verify::{VerifiedSignature, VerifyError, digest_algorithm, verify_detached};

@@ -13,7 +13,9 @@ tempfile.workspace = true
 sealpdf-core.workspace = true
 sealpdf-keystore.workspace = true
 sealpdf-pades.workspace = true
+sealpdf-pdf.workspace = true
+sealpdf-validate.workspace = true
 
 [dev-dependencies]
 lopdf.workspace = true
-sealpdf-pdf.workspace = true
+serde_json.workspace = true

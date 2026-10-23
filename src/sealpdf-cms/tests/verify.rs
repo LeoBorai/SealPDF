@@ -4,7 +4,7 @@ use cms::{cert::CertificateChoices, content_info::ContentInfo, signed_data::Sign
 use common::{Leaf, Pki};
 use const_oid::ObjectIdentifier;
 use der::{Any, Decode, Encode, asn1::OctetString};
-use sealpdf_cms::{PadesCms, PadesCmsOptions, VerifyError, verify_detached};
+use sealpdf_cms::{PadesCms, PadesCmsOptions, VerifyError, digest_algorithm, verify_detached};
 use sealpdf_core::{DigestAlg, KeyType, SigAlg, ValidityError};
 
 const DATA: &[u8] = b"the covered bytes of a PDF";
@@ -132,7 +132,7 @@ fn tampered_content_does_not_match() {
 }
 
 #[test]
-fn tampered_signature_value_is_corrupted() {
+fn tampered_signature_value_does_not_match() {
     let Some(pki) = Pki::new() else { return };
     let rsa = pki.leaf("rsa", false, false);
     let ec = pki.leaf("ec", true, false);
@@ -148,14 +148,14 @@ fn tampered_signature_value_is_corrupted() {
         });
         assert_eq!(
             kind(verify_detached(&bad, DATA)),
-            ValidityError::CorruptedSign,
+            ValidityError::NoMatchData,
             "{key:?}"
         );
     }
 }
 
 #[test]
-fn tampered_signed_attribute_is_corrupted() {
+fn tampered_signed_attribute_does_not_match() {
     // The messageDigest still matches, but another signed attribute changed: only the
     // signature check can notice.
     let Some(pki) = Pki::new() else { return };
@@ -185,7 +185,7 @@ fn tampered_signed_attribute_is_corrupted() {
     });
     assert_eq!(
         kind(verify_detached(&bad, DATA)),
-        ValidityError::CorruptedSign
+        ValidityError::NoMatchData
     );
 }
 
@@ -216,7 +216,7 @@ fn wrong_certificate_does_not_verify() {
     });
     assert_eq!(
         kind(verify_detached(&bad, DATA)),
-        ValidityError::CorruptedSign
+        ValidityError::NoMatchData
     );
 }
 
@@ -372,4 +372,59 @@ fn error_text_names_the_identifier() {
         core,
         sealpdf_core::Error::Validity(ValidityError::CorruptedSign)
     ));
+}
+
+#[test]
+fn reports_signer_name_and_validity_period() {
+    let Some(pki) = Pki::new() else { return };
+    let leaf = pki.leaf("Jane Doe", false, false);
+    let der = sign(&pki, &leaf, KeyType::Rsa, DigestAlg::Sha256, DATA);
+    let verified = verify_detached(&der, DATA).unwrap();
+    assert_eq!(verified.signer_cn.as_deref(), Some("Jane Doe"));
+    let now = std::time::SystemTime::now();
+    assert!(verified.not_before <= now, "certificate starts in the past");
+    assert!(verified.not_after > now, "certificate is valid for a day");
+    assert!(!verified.has_signature_timestamp);
+}
+
+#[test]
+fn detects_a_signature_timestamp_token() {
+    let Some(pki) = Pki::new() else { return };
+    let leaf = pki.leaf("rsa", false, false);
+    let der = sign(&pki, &leaf, KeyType::Rsa, DigestAlg::Sha256, DATA);
+    // Unsigned attributes are not covered by the signature, so it still verifies.
+    let stamped = edit(&der, |s| {
+        let mut infos: Vec<_> = s.signer_infos.0.iter().cloned().collect();
+        let token = x509_cert::attr::Attribute {
+            oid: ObjectIdentifier::new_unwrap("1.2.840.113549.1.9.16.2.14"),
+            values: der::asn1::SetOfVec::try_from(vec![
+                Any::encode_from(&OctetString::new(b"token".to_vec()).unwrap()).unwrap(),
+            ])
+            .unwrap(),
+        };
+        infos[0].unsigned_attrs = Some(der::asn1::SetOfVec::try_from(vec![token]).unwrap());
+        s.signer_infos.0 = der::asn1::SetOfVec::try_from(infos).unwrap();
+    });
+    assert!(
+        verify_detached(&stamped, DATA)
+            .unwrap()
+            .has_signature_timestamp
+    );
+}
+
+#[test]
+fn digest_algorithm_is_read_without_checking_the_signature() {
+    let Some(pki) = Pki::new() else { return };
+    let leaf = pki.leaf("rsa", false, false);
+    for d in [DigestAlg::Sha256, DigestAlg::Sha384, DigestAlg::Sha512] {
+        let der = sign(&pki, &leaf, KeyType::Rsa, d, DATA);
+        assert_eq!(digest_algorithm(&der).unwrap(), d);
+    }
+    let der = sign(&pki, &leaf, KeyType::Rsa, DigestAlg::Sha256, DATA);
+    let no_signer = edit(&der, |s| s.signer_infos.0 = der::asn1::SetOfVec::new());
+    assert_eq!(kind(digest_algorithm(&no_signer)), ValidityError::NoSign);
+    assert_eq!(
+        kind(digest_algorithm(b"not DER")),
+        ValidityError::CorruptedSign
+    );
 }

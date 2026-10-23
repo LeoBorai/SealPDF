@@ -11,6 +11,7 @@ use der::{Any, Decode, Encode, Sequence, asn1::UintRef};
 use p256::ecdsa::signature::hazmat::PrehashVerifier;
 use rsa::{BigUint, Pkcs1v15Sign, RsaPublicKey};
 use sealpdf_core::{DigestAlg, Error, KeyType, ValidityError};
+use std::time::SystemTime;
 use x509_cert::{Certificate, ext::pkix::SubjectKeyIdentifier};
 
 /// Why a signature did not verify. `kind` is a stable identifier.
@@ -54,6 +55,14 @@ pub struct VerifiedSignature {
     pub key: KeyType,
     /// DER of every certificate embedded in the CMS, in the order found.
     pub certificates: Vec<Vec<u8>>,
+    /// Common name of the signer certificate's subject, when it has a readable one.
+    pub signer_cn: Option<String>,
+    /// Start of the signer certificate's validity period.
+    pub not_before: SystemTime,
+    /// End of the signer certificate's validity period.
+    pub not_after: SystemTime,
+    /// The signer info carries a signature timestamp token (an unsigned attribute).
+    pub has_signature_timestamp: bool,
 }
 
 const RSA_SHA256: ObjectIdentifier = ObjectIdentifier::new_unwrap("1.2.840.113549.1.1.11");
@@ -131,23 +140,12 @@ fn pkcs1_prefix(d: DigestAlg) -> Vec<u8> {
 /// (PKCS#1 v1.5) or ECDSA (P-256, P-384) signature by a certificate embedded in the CMS.
 /// Trailing bytes after the CMS, such as the zero padding of `/Contents`, are ignored.
 ///
-/// Errors carry these identifiers: `CORRUPTED_SIGN` for a CMS that cannot be read or
-/// whose signature does not verify, `NO_MATCH_DATA` when `content` is not what was signed,
+/// Errors carry these identifiers: `CORRUPTED_SIGN` for a CMS that cannot be read,
+/// `NO_MATCH_DATA` when `content` is not what was signed or the signature value does not verify,
 /// `NO_SIGN` without a signer, `CERTIFICATE_PROBLEM` without the signer's certificate, and
 /// `ALGORITHM_NOT_SUPPORTED` outside the allow-list.
 pub fn verify_detached(cms_der: &[u8], content: &[u8]) -> Result<VerifiedSignature, VerifyError> {
-    let info = ContentInfo::from_der(trim_padding(cms_der)?)
-        .map_err(|e| corrupt(format!("not a CMS ContentInfo: {e}")))?;
-    if info.content_type != oids::ID_SIGNED_DATA {
-        return Err(corrupt(format!(
-            "content type {} is not signedData",
-            info.content_type
-        )));
-    }
-    let signed: SignedData = info
-        .content
-        .decode_as()
-        .map_err(|e| corrupt(format!("not a SignedData: {e}")))?;
+    let signed = parse_signed_data(cms_der)?;
     if signed.encap_content_info.econtent.is_some() {
         return Err(corrupt(
             "the CMS embeds its content; PAdES signatures are detached",
@@ -226,7 +224,18 @@ pub fn verify_detached(cms_der: &[u8], content: &[u8]) -> Result<VerifiedSignatu
         signer_info.signature.as_bytes(),
     )?;
 
+    let validity = signer.tbs_certificate().validity();
+    let has_signature_timestamp = signer_info.unsigned_attrs.as_ref().is_some_and(|attrs| {
+        attrs
+            .iter()
+            .any(|a| a.oid == oids::ID_AA_SIGNATURE_TIME_STAMP_TOKEN)
+    });
+
     Ok(VerifiedSignature {
+        signer_cn: common_name(&signer),
+        not_before: validity.not_before.to_system_time(),
+        not_after: validity.not_after.to_system_time(),
+        has_signature_timestamp,
         signer: signer.to_der().map_err(|e| corrupt(e.to_string()))?,
         digest,
         key,
@@ -235,6 +244,67 @@ pub fn verify_detached(cms_der: &[u8], content: &[u8]) -> Result<VerifiedSignatu
             .map(|c| c.to_der().map_err(|e| corrupt(e.to_string())))
             .collect::<Result<_, _>>()?,
     })
+}
+
+fn parse_signed_data(cms_der: &[u8]) -> Result<SignedData, VerifyError> {
+    let info = ContentInfo::from_der(trim_padding(cms_der)?)
+        .map_err(|e| corrupt(format!("not a CMS ContentInfo: {e}")))?;
+    if info.content_type != oids::ID_SIGNED_DATA {
+        return Err(corrupt(format!(
+            "content type {} is not signedData",
+            info.content_type
+        )));
+    }
+    info.content
+        .decode_as()
+        .map_err(|e| corrupt(format!("not a SignedData: {e}")))
+}
+
+/// The digest algorithm of the first signer of a CMS `SignedData`, which may embed its content.
+///
+/// Used for document timestamps, whose token is not detached and so cannot go through
+/// [`verify_detached`]. Fails with `ALGORITHM_NOT_SUPPORTED` outside the allow-list, `NO_SIGN`
+/// without a signer and `CORRUPTED_SIGN` for a CMS that cannot be read.
+pub fn digest_algorithm(cms_der: &[u8]) -> Result<DigestAlg, VerifyError> {
+    let signed = parse_signed_data(cms_der)?;
+    let signer = signed
+        .signer_infos
+        .0
+        .iter()
+        .next()
+        .ok_or_else(|| fail(ValidityError::NoSign, "the CMS has no SignerInfo"))?;
+    digest_alg(&signer.digest_alg.oid)
+}
+
+/// The subject's common name.
+fn common_name(cert: &Certificate) -> Option<String> {
+    cert.tbs_certificate()
+        .subject()
+        .iter()
+        .find(|a| a.oid == oids::ID_AT_COMMON_NAME)
+        .and_then(|a| directory_string(&a.value))
+}
+
+fn directory_string(value: &Any) -> Option<String> {
+    use der::{Tag, Tagged};
+    let bytes = value.value();
+    match value.tag() {
+        Tag::Utf8String | Tag::PrintableString | Tag::Ia5String => {
+            std::str::from_utf8(bytes).ok().map(str::to_owned)
+        }
+        // TeletexString is treated as Latin-1, which is how it is used in practice.
+        Tag::TeletexString => Some(bytes.iter().map(|b| char::from(*b)).collect()),
+        Tag::BmpString => {
+            let units: Vec<u16> = bytes
+                .as_chunks::<2>()
+                .0
+                .iter()
+                .map(|c| u16::from_be_bytes(*c))
+                .collect();
+            String::from_utf16(&units).ok()
+        }
+        _ => None,
+    }
 }
 
 /// Cuts a CMS followed by padding (the unused part of `/Contents`) down to its own length.
@@ -293,7 +363,12 @@ fn verify_signature(
         .subject_public_key
         .as_bytes()
         .ok_or_else(|| corrupt("signer public key is not a whole number of bytes"))?;
-    let bad = || corrupt("the signature value does not verify");
+    let bad = || {
+        fail(
+            ValidityError::NoMatchData,
+            "the signature value does not verify",
+        )
+    };
 
     match key {
         KeyType::Rsa => {

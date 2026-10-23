@@ -10,13 +10,29 @@ That builds `libsealpdf_ffi.a` with `cargo`, then runs `swift run` with the libr
 
 ## The window
 
-On the left, the controls; on the right, a preview of the PDF (PDFKit), which you can scroll and zoom. Drop a PDF on the preview to open it.
+Two tabs, **Sign** and **Verify**. Each has its own controls on the left and its own preview of the PDF (PDFKit) on the right, which you can scroll and zoom. Drop a PDF on a preview to open it there.
 
-1. **Open PDF…** takes a PDF.
+### Sign
+
+1. **Open PDF…** takes a PDF. If it already carries a signature, a short notice says so: *This PDF was previously signed, go to Verify for details*. Following it opens the same PDF on the Verify tab. Signing stays available.
 2. **Certificate** is either the **Keychain**, with its signing identities (the ones `sealpdf list-certs` shows), or a **File**: choose a `.p12` / `.pfx`, type its password and press **Unlock**. This is the window's `sealpdf sign --keystore pkcs12:<file>`. The password is used once to open the file and is then cleared.
 3. **Sign…** asks where to save (it proposes `<name>_signed.pdf` next to the original) and signs. The original is never changed.
 
 For the Keychain, macOS asks to use the key with its own prompt (login password or Touch ID). Signing and unlocking run off the main thread, so the window stays responsive.
+
+The notice only counts the signatures (`sealpdf_signature_count`); it checks none of them.
+
+### Verify
+
+**Open PDF…** takes a PDF and checks its signatures, like `sealpdf verify`. Nothing is checked until a PDF is opened on this tab, or sent to it from the Sign tab. The tab shows:
+
+- the **verdict**: *Signed and intact* for `OK`, or the `KO` / `UNKNOWN` items with what each means;
+- one entry per **signature**: the signer, the signing time, the revision it covers, and *Intact* or what is wrong;
+- *This PDF is not signed.* when there is no signature;
+- the reason, instead of a report, when the file is not a readable PDF or is encrypted;
+- always the line *Certificate trust and revocation were not checked.* A signature can be intact and still come from someone you do not trust.
+
+The check runs off the main thread (`sealpdf_inspect`). The meaning of each item is in [docs/cli/verify.md](../../docs/cli/verify.md).
 
 ## About window
 
@@ -39,4 +55,6 @@ CI builds and checks the bundle on every push (`macos-app` in `ci.yml`). A relea
 - `AppInfo.swift` and `AboutView.swift` are the About window.
 - `Resources/icon.icns` is the app icon.
 - `Scripts/` holds the macOS scripts: `bundle.sh` makes the `.app` (from `Info.plist.template`), and `icons.sh` turns a PNG into an `.icns`.
-- `SignModel.swift` holds the state and the open and save panels; `ContentView.swift` is the view and `PDFPreview.swift` the PDFKit preview.
+- `ContentView.swift` holds the two tabs. `SignModel.swift` has the Sign tab's state and its open and save panels, and `SignView.swift` its view.
+- `VerifyModel.swift` and `VerifyView.swift` are the Verify tab; `Report.swift` decodes the JSON that `sealpdf_inspect` returns and wraps the two inspection calls.
+- `PDFPreview.swift` is the PDFKit preview and the pane (with its drop target) both tabs use.

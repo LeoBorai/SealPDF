@@ -19,3 +19,33 @@ struct PDFPreview: NSViewRepresentable {
         view.document = url.flatMap { PDFDocument(url: $0) }
     }
 }
+
+/// The preview with its empty state, which also takes a PDF dropped on it.
+struct PreviewPane: View {
+    let url: URL?
+    let onDrop: @MainActor (URL) -> Void
+
+    var body: some View {
+        ZStack {
+            PDFPreview(url: url)
+            if url == nil {
+                VStack(spacing: 8) {
+                    Image(systemName: "doc.richtext")
+                        .font(.system(size: 44))
+                    Text("Open a PDF, or drop one here")
+                }
+                .foregroundStyle(.secondary)
+                .allowsHitTesting(false)
+            }
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(Color(nsColor: .underPageBackgroundColor))
+        .dropDestination(for: URL.self) { urls, _ in
+            guard let pdf = urls.first(where: { $0.pathExtension.lowercased() == "pdf" }) else {
+                return false
+            }
+            onDrop(pdf)
+            return true
+        }
+    }
+}

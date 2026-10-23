@@ -173,3 +173,136 @@ fn signs_a_pdf_with_a_certificate_file() {
         sealpdf_certs_free(certs);
     }
 }
+
+/// Signs a blank PDF through the C interface and returns the signed file. `None` without OpenSSL.
+fn signed_through_ffi(dir: &std::path::Path) -> Option<std::path::PathBuf> {
+    let p12 = make_p12(dir, "hunter2")?;
+    let path = std::ffi::CString::new(p12.to_str().unwrap()).unwrap();
+    let mut error = std::ptr::null_mut();
+    let certs =
+        unsafe { sealpdf_certs_open_pkcs12(path.as_ptr(), c"hunter2".as_ptr(), &mut error) };
+    assert!(!certs.is_null(), "{}", take(error));
+    let alias = unsafe { sealpdf_certs_alias(certs, 0) };
+
+    let (input, output) = (dir.join("in.pdf"), dir.join("out.pdf"));
+    std::fs::write(&input, blank_pdf()).unwrap();
+    let (input_c, output_c) = (
+        std::ffi::CString::new(input.to_str().unwrap()).unwrap(),
+        std::ffi::CString::new(output.to_str().unwrap()).unwrap(),
+    );
+    let mut error = std::ptr::null_mut();
+    let code = unsafe {
+        sealpdf_sign(
+            certs,
+            input_c.as_ptr(),
+            output_c.as_ptr(),
+            alias,
+            &mut error,
+        )
+    };
+    assert_eq!(
+        code,
+        0,
+        "{}",
+        if code == 0 {
+            String::new()
+        } else {
+            take(error)
+        }
+    );
+    unsafe {
+        sealpdf_string_free(alias);
+        sealpdf_certs_free(certs);
+    }
+    Some(output)
+}
+
+fn c_path(path: &std::path::Path) -> std::ffi::CString {
+    std::ffi::CString::new(path.to_str().unwrap()).unwrap()
+}
+
+#[test]
+fn counts_the_signatures_of_a_pdf() {
+    let dir = tempfile::tempdir().unwrap();
+    let Some(signed) = signed_through_ffi(dir.path()) else {
+        return;
+    };
+    let plain = dir.path().join("plain.pdf");
+    std::fs::write(&plain, blank_pdf()).unwrap();
+
+    let mut error = std::ptr::null_mut();
+    assert_eq!(
+        unsafe { sealpdf_signature_count(c_path(&signed).as_ptr(), &mut error) },
+        1
+    );
+    assert_eq!(
+        unsafe { sealpdf_signature_count(c_path(&plain).as_ptr(), &mut error) },
+        0
+    );
+    assert!(error.is_null(), "no message is written on success");
+}
+
+#[test]
+fn inspects_a_pdf_and_returns_the_report_as_json() {
+    let dir = tempfile::tempdir().unwrap();
+    let Some(signed) = signed_through_ffi(dir.path()) else {
+        return;
+    };
+
+    let mut error = std::ptr::null_mut();
+    let json = unsafe { sealpdf_inspect(c_path(&signed).as_ptr(), &mut error) };
+    assert!(!json.is_null(), "{}", take(error));
+    let text = unsafe { CStr::from_ptr(json) }.to_str().unwrap().to_owned();
+    unsafe { sealpdf_string_free(json) };
+
+    // The same text the command line prints with `--json`.
+    let pdf = sealpdf_pdf::PdfDocument::open(std::fs::read(&signed).unwrap(), None).unwrap();
+    let report = sealpdf_validate::inspect(&pdf, &sealpdf_core::SystemClock).unwrap();
+    assert_eq!(text, report.to_json());
+
+    let value: serde_json::Value = serde_json::from_str(&text).unwrap();
+    assert_eq!(value["signatures"][0]["signer"], "Ada Lovelace");
+    assert_eq!(value["verdicts"][0]["verdict"], "OK");
+}
+
+#[test]
+fn a_file_that_is_not_a_pdf_is_an_error_for_both_calls() {
+    let dir = tempfile::tempdir().unwrap();
+    let junk = dir.path().join("notes.pdf");
+    std::fs::write(&junk, b"just some text").unwrap();
+    let path = c_path(&junk);
+
+    let mut error = std::ptr::null_mut();
+    assert_eq!(
+        unsafe { sealpdf_signature_count(path.as_ptr(), &mut error) },
+        -1
+    );
+    assert!(take(error).contains("invalid PDF"));
+
+    let mut error = std::ptr::null_mut();
+    assert!(unsafe { sealpdf_inspect(path.as_ptr(), &mut error) }.is_null());
+    assert!(take(error).contains("invalid PDF"));
+}
+
+#[test]
+fn missing_files_and_arguments_are_errors_not_crashes() {
+    let mut error = std::ptr::null_mut();
+    assert_eq!(
+        unsafe { sealpdf_signature_count(c"/nonexistent/x.pdf".as_ptr(), &mut error) },
+        -1
+    );
+    assert!(take(error).contains("cannot read"));
+
+    let mut error = std::ptr::null_mut();
+    assert!(unsafe { sealpdf_inspect(std::ptr::null(), &mut error) }.is_null());
+    take(error);
+
+    // The error argument is optional.
+    assert_eq!(
+        unsafe { sealpdf_signature_count(std::ptr::null(), std::ptr::null_mut()) },
+        -1
+    );
+    assert!(
+        unsafe { sealpdf_inspect(c"/nonexistent/x.pdf".as_ptr(), std::ptr::null_mut()) }.is_null()
+    );
+}

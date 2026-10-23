@@ -2,10 +2,10 @@
 
 pub mod job;
 
-use job::{offered, sign_file};
+use job::{inspect_json, offered, sign_file, signature_count};
 use sealpdf_keystore::{Entry, KeyStore, KeychainKeyStore, Pkcs12KeyStore, StaticPrompt};
 use std::{
-    ffi::{CStr, CString, c_char, c_int, c_ulong},
+    ffi::{CStr, CString, c_char, c_int, c_long, c_ulong},
     panic::{AssertUnwindSafe, catch_unwind},
     path::Path,
 };
@@ -146,6 +146,42 @@ pub unsafe extern "C" fn sealpdf_sign(
         Err(message) => {
             unsafe { set_error(error, &message) };
             FAILED
+        }
+    }
+}
+
+/// # Safety
+/// `path` is null or a null-terminated string; `error` is null or points to writable storage for
+/// a `char *`.
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn sealpdf_signature_count(
+    path: *const c_char,
+    error: *mut *mut c_char,
+) -> c_long {
+    let result = guarded(|| signature_count(Path::new(unsafe { str_arg(path)? })));
+    match result {
+        Ok(count) => c_long::try_from(count).unwrap_or(c_long::MAX),
+        Err(message) => {
+            unsafe { set_error(error, &message) };
+            -1
+        }
+    }
+}
+
+/// # Safety
+/// `path` is null or a null-terminated string; `error` is null or points to writable storage for
+/// a `char *`.
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn sealpdf_inspect(
+    path: *const c_char,
+    error: *mut *mut c_char,
+) -> *mut c_char {
+    let result = guarded(|| inspect_json(Path::new(unsafe { str_arg(path)? })));
+    match result {
+        Ok(json) => to_c_string(&json),
+        Err(message) => {
+            unsafe { set_error(error, &message) };
+            std::ptr::null_mut()
         }
     }
 }
