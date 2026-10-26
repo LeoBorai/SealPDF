@@ -34,7 +34,7 @@ png = "0.18"
 chrono = { version = "0.4", default-features = false, features = ["clock"] }
 clap = "4.6"
 cryptoki = "0.12"
-lopdf = "0.45"
+lopdf = "0.46"
 rsa = { version = "0.9", default-features = false, features = ["std"] }
 rand_core = { version = "0.6", features = ["getrandom"] }
 secrecy = "0.10"
