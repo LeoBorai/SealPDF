@@ -16,7 +16,10 @@ Two tabs, **Sign** and **Verify**. Each has its own controls on the left and its
 
 1. **Open PDF…** takes a PDF. If it already carries a signature, a short notice says so: *This PDF was previously signed, go to Verify for details*. Following it opens the same PDF on the Verify tab. Signing stays available.
 2. **Certificate** is either the **Keychain**, with its signing identities (the ones `sealpdf list-certs` shows), or a **File**: choose a `.p12` / `.pfx`, type its password and press **Unlock**. This is the window's `sealpdf sign --keystore pkcs12:<file>`. The password is used once to open the file and is then cleared.
-3. **Sign…** asks where to save (it proposes `<name>_signed.pdf` next to the original) and signs. The original is never changed.
+3. **Visible signature** is off by default: the signature is then invisible and the pages are not touched. Turned on, the preview shows a box on the page, which starts where `sealpdf sign --visible` puts it (a 200 x 50 point box in the lower-left corner of the last page, asked from the Rust library so the two never differ) and scrolls into view. Drag the box to move it, or a corner to resize it (least size 40 x 20 points). It stays inside the visible area of the page, and it belongs to the page under its center when you drop it. Dropped over no page, it goes back where it was. Opening another PDF puts it back at its default place. The signature then shows AutoFirma's text, "Firmado por … el día … con un certificado emitido por …", with the date in this computer's time zone; the text cannot be changed yet. **Sign…** waits until the box is found.
+4. **Sign…** asks where to save (it proposes `<name>_signed.pdf` next to the original) and signs. The original is never changed.
+
+The box is kept in PDF page space (points, origin at the bottom-left of the page, the space of a PDF's `/Rect`), never in view space, and the overlay's frame is derived from it whenever the zoom, scroll or layout changes, so it stays on the same part of the page. PDFKit's `convert` handles page rotation. `sealpdf_sign_visible` receives the page and that rectangle.
 
 For the Keychain, macOS asks to use the key with its own prompt (login password or Touch ID). Signing and unlocking run off the main thread, so the window stays responsive.
 
@@ -51,7 +54,7 @@ CI builds and checks the bundle on every push (`macos-app` in `ci.yml`). A relea
 ## Layout
 
 - `Sources/CSealPDF` is a Clang module over `src/sealpdf-ffi/include/sealpdf.h`, the only copy of the header.
-- `Sources/SealPDF/Certificates.swift` wraps the C calls and frees what Rust allocates.
+- `Sources/SealPDF/Certificates.swift` wraps the C calls and frees what Rust allocates. `SignatureBox.swift` holds `PlacedBox` and the call for the default box, and `SignatureBoxOverlay.swift` the box drawn over the preview and the code that keeps it on its page.
 - `AppInfo.swift` and `AboutView.swift` are the About window.
 - `Resources/icon.icns` is the app icon.
 - `Scripts/` holds the macOS scripts: `bundle.sh` makes the `.app` (from `Info.plist.template`), and `icons.sh` turns a PNG into an `.icns`.

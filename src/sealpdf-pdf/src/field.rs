@@ -95,8 +95,11 @@ fn create(
         PageChoice::Append => (count + 1, false),
     };
     let first = w.pdf().page(1).ok_or_else(invalid_page)?;
+    // A caller rectangle is in the page's default user space, the space `/Rect` uses, so an
+    // existing page is checked against its unrotated crop box. A new page is sized like page one
+    // as it is displayed, and it is not rotated.
     let page_box = if existing {
-        sized_box(w.pdf().page(page_number).ok_or_else(invalid_page)?)
+        w.pdf().page(page_number).ok_or_else(invalid_page)?.crop_box
     } else {
         sized_box(first)
     };
@@ -308,8 +311,8 @@ fn ensure_sig_flags(w: &mut IncrementalWriter<'_>) -> Result<()> {
     }
 }
 
-/// The page rectangle used for placement: the crop box, with width and height swapped
-/// for pages rotated by 90 or 270 degrees.
+/// The page as it is displayed: the crop box, with width and height swapped for pages rotated by
+/// 90 or 270 degrees. Used to size a page appended after page one, never to check a rectangle.
 fn sized_box(page: &Page) -> [f32; 4] {
     let [llx, lly, urx, ury] = page.crop_box;
     if page.rotation.is_multiple_of(180) {

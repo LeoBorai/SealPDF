@@ -32,6 +32,25 @@ char *sealpdf_certs_alias(const SealpdfCerts *certs, unsigned long index);
 int sealpdf_sign(const SealpdfCerts *certs, const char *input, const char *output,
                  const char *alias, char **error);
 
+/* Like sealpdf_sign, with a visible signature: a box on page `page` (1-based) that shows who
+ * signed and when. The rectangle is in the page's default user space, in points with the origin
+ * at the bottom-left, the space a PDF's /Rect uses; /Rotate is not applied to it. It must have an
+ * area and overlap the page's visible area (its crop box), or the call fails and writes nothing.
+ * The time in the text is shown in the system's time zone. Same threading rules as
+ * sealpdf_sign. */
+int sealpdf_sign_visible(const SealpdfCerts *certs, const char *input, const char *output,
+                         const char *alias, unsigned int page,
+                         double llx, double lly, double urx, double ury, char **error);
+
+/* Where a visible signature goes when nothing else is asked, the same place `sealpdf sign
+ * --visible` uses: the page number (1-based) and rectangle, in the same space as above. Any of
+ * the five out-pointers may be NULL. Returns 0 on success; otherwise a non-zero code and, when
+ * `error` is not NULL, a message if the file cannot be read or is not a PDF. Reads the file, so
+ * call it off the main thread for a large PDF. */
+int sealpdf_default_signature_box(const char *path, unsigned int *page,
+                                  double *llx, double *lly, double *urx, double *ury,
+                                  char **error);
+
 /* How many signatures the PDF at `path` carries, document timestamps not counted. Decodes no
  * signature, so it is cheap. Returns -1 and, when `error` is not NULL, a message if the file
  * cannot be read as a PDF. */

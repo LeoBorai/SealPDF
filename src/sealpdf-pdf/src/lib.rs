@@ -19,7 +19,7 @@ pub use appearance::{
 pub use document::{EncryptionInfo, PdfDocument};
 pub use field::{AttachedField, FieldTarget, attach_signature};
 pub use fields::{AcroForm, SignatureField, SignatureValue};
-pub use pages::Page;
+pub use pages::{Page, default_signature_box};
 pub use revisions::Revision;
 pub use text::{DateLocale, SignerText, TextContext, expand_placeholders, format_date};
 pub use writer::{IncrementalWriter, PreparedSignature};

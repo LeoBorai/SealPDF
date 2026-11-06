@@ -1,10 +1,10 @@
 # `sealpdf sign`
 
-Signs a PDF with an invisible PAdES signature and writes the result to a new file.
+Signs a PDF with a PAdES signature, invisible unless `--visible` is given, and writes the result to a new file.
 
 ```
 sealpdf sign <INPUT> [--keystore TYPE[:LOCATION]] [--password-env VAR]
-                      [--alias NAME] [-o, --output FILE] [--force]
+                      [--alias NAME] [-o, --output FILE] [--force] [--visible]
 ```
 
 | Option | Meaning |
@@ -14,8 +14,21 @@ sealpdf sign <INPUT> [--keystore TYPE[:LOCATION]] [--password-env VAR]
 | `--alias` | Sign with this certificate. It need not pass the default filters but must exist. |
 | `-o, --output` | Output path. Default: `<name>_signed.pdf` next to the input (`a.b.pdf` gives `a.b_signed.pdf`). |
 | `--force` | Replace the output if it exists. |
+| `--visible` | Show the signature on the page. See [Visible signature](#visible-signature). |
 
 On success it prints `Signed <input> -> <output>` on stderr.
+
+## Visible signature
+
+By default the signature is invisible. With `--visible`, `sign` also draws a box in the lower-left corner of the last page, 200 x 50 points and 36 points in from the page's visible edges (as the page is displayed, so a rotated page gets it at the displayed corner). The box shows this fixed text, the one AutoFirma prints by default:
+
+```
+Firmado por <subject common name> el día <dd/MM/yyyy> con un certificado emitido por <issuer common name>
+```
+
+The date is the signing time in the time zone of the computer that signs. The text is shrunk to fit the box. It cannot be changed yet, and there is no option for the page or the position: the box may cover content in its corner. The macOS app lets the user place the box.
+
+Only the signature's appearance is added; the page content is not changed. Characters outside the Latin-1 range in a certificate name do not render.
 
 ## Flow
 
@@ -114,7 +127,7 @@ sequenceDiagram
 ```
 
 - The signature is an incremental update: the original bytes are untouched and earlier signatures stay valid.
-- It has no appearance: pages are not changed. The field is attached to page 1.
+- It has no appearance and the field is attached to page 1, unless `--visible` is given. Then the field is in the default box on the last page and its appearance draws the text. The page content is not changed either way.
 - The private key stays in the key store; only the hash-bound attributes are sent to it.
 
 ## Safety

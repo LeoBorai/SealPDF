@@ -18,7 +18,7 @@
 
 > SealPDF is under development. Features and options may change between releases.
 
-The signature is invisible: nothing is added to the pages, but the file is cryptographically signed, and earlier signatures in it stay valid. The original file is never changed.
+By default the signature is invisible: nothing is added to the pages, but the file is cryptographically signed, and earlier signatures in it stay valid. With `--visible` a box on the last page also says who signed and when. The original file is never changed.
 
 A seal is the mark that closes a document and shows it has not been opened or changed since. A digital signature does the same for a file: if a single byte covered by the signature changes, the seal breaks and verification fails.
 
@@ -49,6 +49,7 @@ sealpdf list-certs                                  # the certificates available
 sealpdf sign contract.pdf --alias "Ada Lovelace"    # choose the certificate by its alias
 sealpdf sign contract.pdf --output signed/contract.pdf
 sealpdf sign contract.pdf --force                   # replace an existing output file
+sealpdf sign contract.pdf --visible                 # also show a box on the last page: who signed, and when
 sealpdf ls contract_signed.pdf --json               # the signatures as JSON, for scripts
 sealpdf verify contract_signed.pdf --json           # the signatures and the verdict as JSON
 P12_PASSWORD='...' sealpdf sign contract.pdf --keystore pkcs12:me.p12 --password-env P12_PASSWORD

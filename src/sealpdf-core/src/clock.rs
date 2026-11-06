@@ -1,4 +1,4 @@
-use chrono::{DateTime, Utc};
+use chrono::{DateTime, FixedOffset, Local, Utc};
 
 /// Time source passed into signing so output is deterministic in tests.
 pub trait Clock: Send + Sync {
@@ -21,4 +21,10 @@ impl Clock for FixedClock {
     fn now(&self) -> DateTime<Utc> {
         self.0
     }
+}
+
+/// The offset from UTC of the system's time zone right now, daylight saving time included.
+/// Used to show a signing time as the signer's clock would.
+pub fn local_utc_offset() -> FixedOffset {
+    *Local::now().offset()
 }

@@ -1,9 +1,9 @@
 //! The work behind the window, free of any UI so it runs and is tested on every platform.
 
-use sealpdf_core::SystemClock;
+use sealpdf_core::{SystemClock, local_utc_offset};
 use sealpdf_keystore::{CertFilters, Entry, KeyStore, NoPrompt};
-use sealpdf_pades::{SigningParams, sign_pdf};
-use sealpdf_pdf::PdfDocument;
+use sealpdf_pades::{Placement, SigningParams, VisibleSignature, sign_pdf};
+use sealpdf_pdf::{PdfDocument, default_signature_box};
 use sealpdf_validate::{inspect, signature_count as count_signatures};
 use std::{
     io::Write,
@@ -27,6 +27,40 @@ pub fn sign_file(
     alias: &str,
     store: &dyn KeyStore,
 ) -> Result<(), String> {
+    sign_with(input, output, alias, store, None)
+}
+
+/// Like [`sign_file`], with a visible signature on `page` (1-based) in `rect`, which is
+/// `[llx, lly, urx, ury]` in the page's default user space, the space `/Rect` uses. The time in
+/// the text is shown in the system's time zone.
+pub fn sign_file_visible(
+    input: &Path,
+    output: &Path,
+    alias: &str,
+    store: &dyn KeyStore,
+    page: u32,
+    rect: [f32; 4],
+) -> Result<(), String> {
+    let visible = VisibleSignature {
+        placement: Some(Placement { page, rect }),
+        utc_offset: local_utc_offset(),
+    };
+    sign_with(input, output, alias, store, Some(visible))
+}
+
+/// The page and rectangle a visible signature gets when nothing else is asked, the same ones
+/// `sealpdf sign --visible` uses. Cheap enough to call whenever a document is opened.
+pub fn default_box(path: &Path) -> Result<(u32, [f32; 4]), String> {
+    default_signature_box(&open(path)?).map_err(|e| e.to_string())
+}
+
+fn sign_with(
+    input: &Path,
+    output: &Path,
+    alias: &str,
+    store: &dyn KeyStore,
+    visible: Option<VisibleSignature>,
+) -> Result<(), String> {
     if same_file(input, output) {
         return Err("the output is the input file; the input is never overwritten".into());
     }
@@ -38,7 +72,10 @@ pub fn sign_file(
         alias,
         &SystemClock,
         &NoPrompt,
-        &SigningParams::default(),
+        &SigningParams {
+            visible,
+            ..SigningParams::default()
+        },
     )
     .map_err(|e| e.to_string())?;
     write_atomically(output, &signed)

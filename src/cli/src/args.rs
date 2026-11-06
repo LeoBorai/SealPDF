@@ -67,6 +67,11 @@ pub struct SignArgs {
     /// Replace the output file if it already exists.
     #[arg(long)]
     pub force: bool,
+
+    /// Show the signature on the page: a box in the lower-left corner of the last page that says
+    /// who signed and when. Without it the signature is invisible.
+    #[arg(long)]
+    pub visible: bool,
 }
 
 /// Where the certificates come from.

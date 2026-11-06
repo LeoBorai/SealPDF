@@ -24,6 +24,18 @@ final class SignModel: ObservableObject {
     /// The open PDF already carries a signature. Found by counting, never by checking.
     @Published private(set) var previouslySigned = false
 
+    /// Whether the signature is drawn on a page. Off, it is invisible.
+    @Published var visible = false {
+        didSet {
+            guard visible != oldValue else { return }
+            box = nil
+            if visible { loadDefaultBox() }
+        }
+    }
+    /// Where the visible signature goes. Found by the Rust library when the toggle goes on or a
+    /// PDF is opened, then moved by the user.
+    @Published var box: PlacedBox?
+
     private var keychain: Certificates?
     private var fromFile: Certificates?
 
@@ -49,17 +61,37 @@ final class SignModel: ObservableObject {
     }
 
     var canUnlock: Bool { certificateFile != nil && !password.isEmpty && !isWorking }
-    var canSign: Bool { input != nil && !selected.isEmpty && !isWorking }
+    var canSign: Bool {
+        // A visible signature waits for its box.
+        input != nil && !selected.isEmpty && !isWorking && (!visible || box != nil)
+    }
 
     func setInput(_ url: URL) {
         input = url
         status = ""
         previouslySigned = false
+        box = nil
+        if visible { loadDefaultBox() }
         Task { [self] in
             let count = await Task.detached { try? PDFInspector.signatureCount(of: url) }.value
             // Another PDF was opened meanwhile: the answer is not about the one on show.
             guard input == url else { return }
             previouslySigned = (count ?? 0) > 0
+        }
+    }
+
+    /// The default box for the open PDF, the same one `sealpdf sign --visible` uses.
+    private func loadDefaultBox() {
+        guard let url = input else { return }
+        Task { [self] in
+            let found = await Task.detached { Result { try SignatureBoxes.defaultBox(of: url) } }
+                .value
+            // Another PDF was opened, or the toggle went off, meanwhile.
+            guard visible, input == url else { return }
+            switch found {
+            case .success(let placed): box = placed
+            case .failure(let error): failure = error.localizedDescription
+            }
         }
     }
 
@@ -119,13 +151,20 @@ final class SignModel: ObservableObject {
         guard panel.runModal() == .OK, let output = panel.url else { return }
 
         let alias = selected
+        let placed = visible ? box : nil
         isWorking = true
         status = "Signing…"
         defer { isWorking = false }
         do {
             // macOS may show its own prompt for the key; keep the window responsive meanwhile.
             try await Task.detached {
-                try certificates.sign(input: input, output: output, alias: alias)
+                if let placed {
+                    try certificates.signVisible(
+                        input: input, output: output, alias: alias,
+                        page: placed.pageIndex + 1, rect: placed.rect)
+                } else {
+                    try certificates.sign(input: input, output: output, alias: alias)
+                }
             }.value
             status = "Signed. Saved to \(output.path)"
         } catch {

@@ -228,8 +228,8 @@ fn reversed_corners_are_normalized() {
 }
 
 #[test]
-fn rotated_page_swaps_width_and_height() {
-    // 595 x 842 rotated by 90 is 842 wide and 595 high.
+fn rotated_page_rectangle_is_in_user_space() {
+    // 595 x 842 rotated by 90: `/Rect` still uses the unrotated space, so the check does too.
     let (mut d, ids) = base(1);
     d.get_object_mut(ids[0])
         .unwrap()
@@ -237,8 +237,14 @@ fn rotated_page_swaps_width_and_height() {
         .unwrap()
         .set("Rotate", int(90));
     let bytes = save(&mut d);
-    assert!(place(&bytes, PageSel::Number(1), Some([700.0, 10.0, 800.0, 50.0])).is_ok());
-    let err = place(&bytes, PageSel::Number(1), Some([10.0, 600.0, 90.0, 700.0])).unwrap_err();
+    let (_, field) = place(
+        &bytes,
+        PageSel::Number(1),
+        Some([400.0, 700.0, 550.0, 800.0]),
+    )
+    .unwrap();
+    assert_eq!(field.rect, [400.0, 700.0, 550.0, 800.0]);
+    let err = place(&bytes, PageSel::Number(1), Some([700.0, 10.0, 800.0, 50.0])).unwrap_err();
     assert_eq!(code(err), Some(ErrorCode::INVALID_SIGNATURE_POSITION));
 }
 

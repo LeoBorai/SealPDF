@@ -2,10 +2,10 @@
 
 pub mod job;
 
-use job::{inspect_json, offered, sign_file, signature_count};
+use job::{default_box, inspect_json, offered, sign_file, sign_file_visible, signature_count};
 use sealpdf_keystore::{Entry, KeyStore, KeychainKeyStore, Pkcs12KeyStore, StaticPrompt};
 use std::{
-    ffi::{CStr, CString, c_char, c_int, c_long, c_ulong},
+    ffi::{CStr, CString, c_char, c_double, c_int, c_long, c_uint, c_ulong},
     panic::{AssertUnwindSafe, catch_unwind},
     path::Path,
 };
@@ -143,6 +143,81 @@ pub unsafe extern "C" fn sealpdf_sign(
     });
     match result {
         Ok(()) => OK,
+        Err(message) => {
+            unsafe { set_error(error, &message) };
+            FAILED
+        }
+    }
+}
+
+/// # Safety
+/// As for `sealpdf_sign`.
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn sealpdf_sign_visible(
+    certs: *const SealpdfCerts,
+    input: *const c_char,
+    output: *const c_char,
+    alias: *const c_char,
+    page: c_uint,
+    llx: c_double,
+    lly: c_double,
+    urx: c_double,
+    ury: c_double,
+    error: *mut *mut c_char,
+) -> c_int {
+    let result = guarded(|| {
+        let certs = unsafe { certs.as_ref() }.ok_or("no certificate list")?;
+        let (input, output, alias) =
+            unsafe { (str_arg(input)?, str_arg(output)?, str_arg(alias)?) };
+        // A value too large for `f32` becomes infinite and is refused as a bad position.
+        let rect = [llx, lly, urx, ury].map(|n| n as f32);
+        sign_file_visible(
+            Path::new(input),
+            Path::new(output),
+            alias,
+            &*certs.store,
+            page,
+            rect,
+        )
+    });
+    match result {
+        Ok(()) => OK,
+        Err(message) => {
+            unsafe { set_error(error, &message) };
+            FAILED
+        }
+    }
+}
+
+/// # Safety
+/// `path` is null or a null-terminated string; the five out-pointers are null or point to
+/// writable storage of their type (a null one is skipped); `error` is null or points to writable
+/// storage for a `char *`.
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn sealpdf_default_signature_box(
+    path: *const c_char,
+    page: *mut c_uint,
+    llx: *mut c_double,
+    lly: *mut c_double,
+    urx: *mut c_double,
+    ury: *mut c_double,
+    error: *mut *mut c_char,
+) -> c_int {
+    let result = guarded(|| default_box(Path::new(unsafe { str_arg(path)? })));
+    match result {
+        Ok((number, rect)) => {
+            unsafe {
+                if let Some(page) = page.as_mut() {
+                    *page = number;
+                }
+                for (out, value) in [llx, lly, urx, ury].into_iter().zip(rect) {
+                    if let Some(out) = out.as_mut() {
+                        *out = f64::from(value);
+                    }
+                }
+            }
+            OK
+        }
         Err(message) => {
             unsafe { set_error(error, &message) };
             FAILED
