@@ -1,6 +1,6 @@
 # SealPDF CLI
 
-`sealpdf` (SealPDF) signs PDF files with a digital certificate you already have, and lists and checks the signatures in a PDF. The signature is invisible and follows PAdES (`adbe.pkcs7.detached`). The crate is `src/cli`; the binary is `sealpdf`.
+`sealpdf` (SealPDF) signs PDF files with a digital certificate you already have, and lists and checks the signatures in a PDF. The signature is invisible unless `--visible` is given, and follows PAdES (`adbe.pkcs7.detached`). The crate is `src/cli`; the binary is `sealpdf`.
 
 | Command | What it does | Page |
 | --- | --- | --- |

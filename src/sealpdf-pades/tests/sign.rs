@@ -344,7 +344,10 @@ fn a_cms_that_does_not_fit_is_an_error() {
     let Some(pki) = Pki::new() else { return };
     let leaf = pki.leaf("rsa", None);
     let ks = store(&pki, &leaf);
-    let tiny = SigningParams { reserved_size: 100 };
+    let tiny = SigningParams {
+        reserved_size: 100,
+        ..SigningParams::default()
+    };
     let err = sign_pdf(blank_pdf(1, false), &ks, "rsa", &clock(), &NoPrompt, &tiny).unwrap_err();
     assert!(
         matches!(err, Error::SignatureTooLarge { reserved: 100, .. }),

@@ -63,6 +63,8 @@ fn help_and_version() {
             predicate::str::contains("--keystore")
                 .and(predicate::str::contains("--alias"))
                 .and(predicate::str::contains("--force"))
+                .and(predicate::str::contains("--visible"))
+                .and(predicate::str::contains("last page"))
                 .and(predicate::str::contains("--password-env")),
         );
     sealpdf()
@@ -286,6 +288,80 @@ fn signs_a_pdf_next_to_the_input() {
         .map(|e| e.unwrap().file_name())
         .collect();
     assert_eq!(names.len(), 2, "{names:?}");
+}
+
+/// The page, rectangle and whether it has an appearance, for the last signature of `file`.
+fn last_widget(file: &[u8]) -> (Option<u32>, [f32; 4], bool) {
+    let pdf = sealpdf_pdf::PdfDocument::open(file.to_vec(), None).unwrap();
+    let sig = pdf.signatures().pop().unwrap();
+    let has_ap = pdf.document().get_dictionary(sig.id).unwrap().has(b"AP");
+    (sig.page, sig.rect.unwrap(), has_ap)
+}
+
+fn sign_args(input: &Path, p12: &str) -> Vec<String> {
+    [
+        "sign",
+        input.to_str().unwrap(),
+        "--keystore",
+        p12,
+        "--password-env",
+        "SEALPDF_PW",
+    ]
+    .map(String::from)
+    .to_vec()
+}
+
+#[test]
+fn visible_signs_in_the_default_box_on_the_last_page() {
+    let Some(pki) = Pki::new() else { return };
+    let leaf = pki.leaf("rsa", None);
+    let dir = tempfile::tempdir().unwrap();
+    let input = write(dir.path(), "contract.pdf", &blank_pdf(3, false));
+    sealpdf()
+        .args(sign_args(&input, &p12(&pki, &leaf)))
+        .arg("--visible")
+        .env("SEALPDF_PW", PASSWORD)
+        .assert()
+        .success();
+    let signed = std::fs::read(dir.path().join("contract_signed.pdf")).unwrap();
+    assert_eq!(
+        last_widget(&signed),
+        (Some(3), [36.0, 36.0, 236.0, 86.0], true)
+    );
+    assert_eq!(verify_nth(&signed, 0).signer, leaf.cert_der);
+}
+
+#[test]
+fn without_visible_the_signature_stays_invisible() {
+    let Some(pki) = Pki::new() else { return };
+    let leaf = pki.leaf("rsa", None);
+    let dir = tempfile::tempdir().unwrap();
+    let input = write(dir.path(), "contract.pdf", &blank_pdf(3, false));
+    sealpdf()
+        .args(sign_args(&input, &p12(&pki, &leaf)))
+        .env("SEALPDF_PW", PASSWORD)
+        .assert()
+        .success();
+    let signed = std::fs::read(dir.path().join("contract_signed.pdf")).unwrap();
+    assert_eq!(last_widget(&signed), (Some(1), [0.0; 4], false));
+}
+
+#[test]
+fn visible_works_with_a_named_output_and_keystore() {
+    let Some(pki) = Pki::new() else { return };
+    let leaf = pki.leaf("rsa", None);
+    let dir = tempfile::tempdir().unwrap();
+    let input = write(dir.path(), "in.pdf", &blank_pdf(1, false));
+    let out = dir.path().join("out.pdf");
+    sealpdf()
+        .args(sign_args(&input, &p12(&pki, &leaf)))
+        .args(["--visible", "--output", out.to_str().unwrap()])
+        .env("SEALPDF_PW", PASSWORD)
+        .assert()
+        .success();
+    let (page, rect, has_ap) = last_widget(&std::fs::read(&out).unwrap());
+    assert_eq!((page, has_ap), (Some(1), true));
+    assert_ne!(rect, [0.0; 4]);
 }
 
 #[test]

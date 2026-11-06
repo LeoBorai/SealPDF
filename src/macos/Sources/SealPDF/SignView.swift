@@ -80,6 +80,22 @@ struct SignView: View {
                 .padding(4)
             }
 
+            GroupBox("Signature") {
+                VStack(alignment: .leading, spacing: 8) {
+                    Toggle("Visible signature", isOn: $model.visible)
+                    Text(
+                        model.visible
+                            ? "Drag the box on the page to place it, and its corners to resize it."
+                            : "The signature is invisible: nothing is added to the pages."
+                    )
+                    .font(.callout)
+                    .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(4)
+            }
+
             Button("Sign…") { Task { await model.sign() } }
                 .controlSize(.large)
                 .keyboardShortcut(.defaultAction)
@@ -111,6 +127,6 @@ struct SignView: View {
     }
 
     private var preview: some View {
-        PreviewPane(url: model.input, onDrop: model.setInput)
+        PreviewPane(url: model.input, box: $model.box, onDrop: model.setInput)
     }
 }

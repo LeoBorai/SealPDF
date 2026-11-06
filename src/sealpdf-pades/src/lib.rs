@@ -2,4 +2,4 @@
 
 mod sign;
 
-pub use sign::{SigningParams, sign_pdf};
+pub use sign::{AUTOFIRMA_TEMPLATE, Placement, SigningParams, VisibleSignature, sign_pdf};

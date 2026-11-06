@@ -1,8 +1,8 @@
 use super::{offered, open_keystore};
 use crate::{args::SignArgs, exit::Failure};
-use sealpdf_core::{KeystoreError, SystemClock};
+use sealpdf_core::{KeystoreError, SystemClock, local_utc_offset};
 use sealpdf_keystore::Entry;
-use sealpdf_pades::{SigningParams, sign_pdf};
+use sealpdf_pades::{SigningParams, VisibleSignature, sign_pdf};
 use std::{
     io::{BufRead, IsTerminal, Write},
     path::{Path, PathBuf},
@@ -19,13 +19,21 @@ pub fn run(args: &SignArgs) -> Result<(), Failure> {
     let alias = choose_alias(opened.store.as_ref(), args.alias.as_deref())?;
     tracing::debug!(%alias, "signing with");
 
+    let params = SigningParams {
+        // The default box on the last page, with the time in the system's time zone.
+        visible: args.visible.then(|| VisibleSignature {
+            placement: None,
+            utc_offset: local_utc_offset(),
+        }),
+        ..SigningParams::default()
+    };
     let signed = sign_pdf(
         input,
         opened.store.as_ref(),
         &alias,
         &SystemClock,
         &opened.prompt,
-        &SigningParams::default(),
+        &params,
     )?;
     write_atomically(&output, &signed, args.force)?;
     eprintln!("Signed {} -> {}", args.input.display(), output.display());

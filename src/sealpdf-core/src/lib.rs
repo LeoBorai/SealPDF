@@ -6,7 +6,7 @@ mod error;
 mod options;
 
 pub use alg::{DigestAlg, KeyType, SigAlg};
-pub use clock::{Clock, FixedClock, SystemClock};
+pub use clock::{Clock, FixedClock, SystemClock, local_utc_offset};
 pub use error::{Error, ErrorCode, KeystoreError, Result, ValidityError, Verdict, VerdictKind};
 pub use options::{
     CertLevel, CertificateOptions, Certify, Checks, CommitmentType, Format, Metadata, Page, Policy,

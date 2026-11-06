@@ -55,4 +55,16 @@ final class Certificates: @unchecked Sendable {
             throw SealError(message: take(error) ?? "signing failed (code \(code))")
         }
     }
+
+    /// Like `sign`, with a visible signature on `page` (1-based) in `rect`, which is in PDF user
+    /// space: points, origin at the bottom-left, the space a PDF's `/Rect` uses.
+    func signVisible(input: URL, output: URL, alias: String, page: Int, rect: CGRect) throws {
+        var error: UnsafeMutablePointer<CChar>?
+        let code = sealpdf_sign_visible(
+            handle, input.path, output.path, alias, UInt32(page),
+            Double(rect.minX), Double(rect.minY), Double(rect.maxX), Double(rect.maxY), &error)
+        if code != 0 {
+            throw SealError(message: take(error) ?? "signing failed (code \(code))")
+        }
+    }
 }
