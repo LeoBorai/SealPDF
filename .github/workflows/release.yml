@@ -44,8 +44,8 @@ jobs:
         include:
           - { target: x86_64-unknown-linux-gnu, os: ubuntu-22.04, ext: tar.gz }
           - { target: aarch64-unknown-linux-gnu, os: ubuntu-22.04-arm, ext: tar.gz }
-          - { target: x86_64-apple-darwin, os: macos-14, ext: tar.gz }
-          - { target: aarch64-apple-darwin, os: macos-14, ext: tar.gz }
+          - { target: x86_64-apple-darwin, os: macos-15, ext: tar.gz }
+          - { target: aarch64-apple-darwin, os: macos-15, ext: tar.gz }
           - { target: x86_64-pc-windows-msvc, os: windows-latest, ext: zip }
     steps:
       - uses: actions/checkout@v7
@@ -97,7 +97,7 @@ jobs:
   app-macos:
     name: Bundle macOS app
     needs: check-tag
-    runs-on: macos-14
+    runs-on: macos-15
     steps:
       - uses: actions/checkout@v7
 
