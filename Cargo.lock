@@ -412,7 +412,7 @@ version = "0.3.0-rc.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "2a7e16fb99a745fd8c7327eeb7deb9f667c03320f4f61d23c1927a55813b4466"
 dependencies = [
- "const-oid 0.10.2",
+ "const-oid 0.10.3",
  "der 0.8.3",
  "spki 0.8.1",
  "x509-cert 0.3.0",
@@ -432,9 +432,9 @@ checksum = "c2459377285ad874054d797f3ccebf984978aa39129f6eafde5cdc8315b612f8"
 
 [[package]]
 name = "const-oid"
-version = "0.10.2"
+version = "0.10.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a6ef517f0926dd24a1582492c791b6a4818a4d94e789a334894aa15b0d12f55c"
+checksum = "be95d4a884358a21a199689323c29e9256b4a1b315e22f183d155422041d3a9a"
 
 [[package]]
 name = "core-foundation"
@@ -610,7 +610,7 @@ version = "0.8.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "6a996a108feb8b427a6e12fcf6af4aa83409b79d72c15337d7741368131ee004"
 dependencies = [
- "const-oid 0.10.2",
+ "const-oid 0.10.3",
  "der_derive 0.8.0",
  "flagset",
  "pem-rfc7468 1.0.0",
@@ -693,7 +693,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f1dd6dbb5841937940781866fa1281a1ff7bd3bf827091440879f9994983d5c2"
 dependencies = [
  "block-buffer 0.12.1",
- "const-oid 0.10.2",
+ "const-oid 0.10.3",
  "crypto-common 0.2.2",
  "ctutils",
 ]
@@ -834,9 +834,9 @@ checksum = "b7ac824320a75a52197e8f2d787f6a38b6718bb6897a35142d749af3c0e8f4fe"
 
 [[package]]
 name = "flate2"
-version = "1.1.10"
+version = "1.1.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6e634e2e0ebac1ee034020da1ca582e17ffe4e0f5e985823721e168928136dcb"
+checksum = "626d4928326b646e70f65ed36fc7cf9f206bdb68a0019ee7c6b4709da4e084c4"
 dependencies = [
  "crc32fast",
  "miniz_oxide 0.9.1",
@@ -1692,9 +1692,9 @@ dependencies = [
 
 [[package]]
 name = "rpassword"
-version = "7.5.4"
+version = "7.5.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2da316a15f47e3d053de9cb2c439650bd8fa4aaeb9365f2e5f27f492ff73c196"
+checksum = "1fa2c5d9304b618df61ff17f3d3485c6e1854a3d94902a49abbb8d43dfbe0464"
 dependencies = [
  "libc",
  "rtoolbox",
@@ -1851,7 +1851,7 @@ version = "0.1.7"
 dependencies = [
  "base64 0.23.1",
  "cms 0.3.0-rc.0",
- "const-oid 0.10.2",
+ "const-oid 0.10.3",
  "der 0.8.3",
  "lopdf",
  "p256",
@@ -1950,7 +1950,7 @@ version = "0.1.7"
 dependencies = [
  "chrono",
  "cms 0.3.0-rc.0",
- "const-oid 0.10.2",
+ "const-oid 0.10.3",
  "der 0.8.3",
  "getrandom 0.4.3",
  "sealpdf-core",
@@ -1969,7 +1969,7 @@ version = "0.1.7"
 dependencies = [
  "chrono",
  "cms 0.3.0-rc.0",
- "const-oid 0.10.2",
+ "const-oid 0.10.3",
  "der 0.8.3",
  "lopdf",
  "p12-keystore",
@@ -2519,9 +2519,9 @@ checksum = "8ecb6da28b8a351d773b68d5825ac39017e680750f980f3a1a85cd8dd28a47c1"
 
 [[package]]
 name = "ureq"
-version = "3.5.1"
+version = "3.5.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e7be76686bdf7198002062423ca0d8cf9b75a27c8e1de804513b97e97b555d9d"
+checksum = "3ac5cecf619ca81f66a96482db09687c9f7465af65f4300a8c30cca05bd5a59d"
 dependencies = [
  "base64 0.23.1",
  "flate2",
@@ -2821,7 +2821,7 @@ version = "0.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "105ef4642d9cb137ef83d623d0e4bf08b8adf69e9918ca904a174adb6d3d038b"
 dependencies = [
- "const-oid 0.10.2",
+ "const-oid 0.10.3",
  "der 0.8.3",
  "spki 0.8.1",
  "tls_codec",
